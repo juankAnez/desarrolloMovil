@@ -1,0 +1,83 @@
+---
+description: Buenas prácticas Java y Spring Boot para reservations-backend
+alwaysApply: true
+---
+
+# Spring Boot — Java
+
+Stack del proyecto: **Spring Boot 4**, **Java 25**, **JPA**, **PostgreSQL**, **springdoc-openapi**.
+
+## Estructura y convenciones
+
+- Paquete base: `com.janiez.reservations_backend`.
+- Capas: `controller` → `service` → `repository`; DTOs en `dto`, entidades en `model`/`entity`, excepciones en `exception`.
+- Una responsabilidad por clase; preferir composición sobre herencia.
+- Nombres en inglés; métodos en `camelCase`, constantes en `UPPER_SNAKE_CASE`.
+
+## Java
+
+- Usar `Optional` solo como retorno, no como parámetro ni campo.
+- Preferir `record` para DTOs inmutables y value objects.
+- Validar en el borde con Bean Validation (`@Valid`, `@NotNull`, `@Size`, etc.).
+- No capturar excepciones genéricas sin re-lanzar o mapear; no usar `catch (Exception e) {}`.
+- Usar `final` en parámetros y variables locales cuando no cambien.
+- Evitar lógica de negocio en controladores; mantenerla en servicios.
+
+## Spring Boot
+
+- Inyección por constructor (un constructor → `@Autowired` opcional).
+- Configuración externa en `application.properties` o perfiles (`application-dev.properties`); nunca secretos en código.
+- REST: recursos en plural (`/reservations`), códigos HTTP correctos (201 create, 404 not found, 409 conflict).
+- `@Transactional` solo en la capa de servicio; lecturas con `readOnly = true` cuando aplique.
+- Excepciones de dominio → `@ControllerAdvice` + `@ExceptionHandler` con respuestas JSON coherentes.
+
+## JPA / base de datos
+
+- Entidades con `@Entity`, `@Table`, claves con `@Id` y `@GeneratedValue`.
+- Relaciones lazy por defecto; evitar N+1 con `JOIN FETCH` o `@EntityGraph` cuando haga falta.
+- No exponer entidades JPA en la API; mapear a DTOs.
+- Migraciones y esquema: preferir Flyway/Liquibase en producción; no depender de `ddl-auto=update` en prod.
+
+## API y documentación
+
+- Documentar endpoints con anotaciones de springdoc (`@Operation`, `@ApiResponse`).
+- Paginación con `Pageable` para listados grandes.
+- Respuestas de error con cuerpo estructurado (código, mensaje, timestamp).
+
+## Tests
+
+- `@SpringBootTest` para integración; `@WebMvcTest` / `@DataJpaTest` para slices.
+- Usar `@MockBean` o mocks de constructor según el caso; datos de prueba con `@Sql` o Testcontainers si hace falta PostgreSQL real.
+- Nombres descriptivos: `shouldReturn404WhenReservationNotFound`.
+
+## Ejemplos
+
+```java
+// ❌ Mal: lógica y entidad expuesta
+@GetMapping("/{id}")
+public Reservation get(@PathVariable Long id) {
+    return repo.findById(id).get();
+}
+
+// ✅ Bien: servicio + DTO + manejo de ausencia
+@GetMapping("/{id}")
+public ReservationResponse get(@PathVariable Long id) {
+    return reservationService.findById(id);
+}
+```
+
+```java
+// ✅ Servicio transaccional
+@Service
+@RequiredArgsConstructor
+public class ReservationService {
+    private final ReservationRepository repository;
+
+    @Transactional(readOnly = true)
+    public ReservationResponse findById(Long id) {
+        return repository.findById(id)
+            .map(ReservationMapper::toResponse)
+            .orElseThrow(() -> new ReservationNotFoundException(id));
+    }
+}
+```

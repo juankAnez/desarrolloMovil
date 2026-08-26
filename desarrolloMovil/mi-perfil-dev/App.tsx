@@ -14,8 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 const { width } = Dimensions.get('window');
 
 export default function App() {
-  // Lista de 3 tecnologías con NOMBRES DE ICONOS de @expo/vector-icons (Ionicons)
-  // Puedes buscar más nombres en: https://icons.expo.fyi/
+
   const skills = [
     {
       id: '1',
@@ -121,7 +120,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F1F5F9', // Fondo claro (gris muy suave)
+    backgroundColor: '#F1F5F9',
   },
   scrollContainer: {
     alignItems: 'center',
@@ -130,25 +129,25 @@ const styles = StyleSheet.create({
   headerBanner: {
     width: '100%',
     height: 120,
-    backgroundColor: '#E2E8F0', // Gris suave para el banner
+    backgroundColor: '#E2E8F0',
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
   card: {
     width: width * 0.9,
     maxWidth: 420,
-    backgroundColor: '#FFFFFF', // Fondo blanco puro para la tarjeta
+    backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 24,
     marginTop: -60,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08, // Sombra más sutil
+    shadowOpacity: 0.08,
     shadowRadius: 15,
     elevation: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0', // Borde gris claro
+    borderColor: '#E2E8F0',
   },
   avatarContainer: {
     position: 'relative',
@@ -159,7 +158,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: '#0EA5E9', // Azul un poco más intenso para resaltar sobre fondo claro
+    borderColor: '#0EA5E9',
   },
   onlineBadge: {
     position: 'absolute',
@@ -170,20 +169,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#22C55E',
     borderWidth: 3,
-    borderColor: '#FFFFFF', // Borde blanco para que se vea limpio
+    borderColor: '#FFFFFF',
   },
   name: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#0F172A', // Texto oscuro (casi negro)
+    color: '#0F172A',
     textAlign: 'center',
     marginBottom: 6,
   },
   roleTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F1F5F9', // Fondo gris muy suave
-    paddingHorizontal: 14,
+    backgroundColor: '#F1F5F9',
     paddingVertical: 6,
     borderRadius: 20,
     marginBottom: 20,
@@ -191,14 +189,14 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   roleText: {
-    color: '#0EA5E9', // Azul
+    color: '#0EA5E9',
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },
   bioContainer: {
     width: '100%',
-    backgroundColor: '#F8FAFC', // Fondo casi blanco con un tono gris
+    backgroundColor: '#F8FAFC',
     padding: 16,
     borderRadius: 16,
     marginBottom: 20,
@@ -211,11 +209,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#0F172A', // Oscuro
+    color: '#0F172A',
   },
   bioText: {
     fontSize: 14,
-    color: '#475569', // Gris medio, legible
+    color: '#475569',
     lineHeight: 22,
   },
   divider: {
@@ -234,7 +232,7 @@ const styles = StyleSheet.create({
   skillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#F8FAFC', // Fondo claro para cada badge
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 14,
@@ -242,13 +240,13 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
   },
   skillText: {
-    color: '#1E293B', // Texto oscuro
+    color: '#1E293B',
     fontSize: 14,
     fontWeight: '600',
   },
   footerText: {
     marginTop: 24,
-    color: '#94A3B8', // Gris medio
+    color: '#94A3B8',
     fontSize: 12,
   },
 });

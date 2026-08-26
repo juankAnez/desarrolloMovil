@@ -35,7 +35,7 @@ export default function App() {
           {/* Contenedor del Avatar / Foto */}
           <View style={styles.avatarContainer}>
             <Image
-              source={require('./assets/avatar.png')}
+              source={require('./assets/avatar.jpeg')}
               style={styles.avatar}
               resizeMode="cover"
             />

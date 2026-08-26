@@ -8,72 +8,57 @@
 
 ## 1. Prompt de Configuración Utilizado
 
-> **Instrucciones / Regla de Sistema (System Prompt):**
-> "Actúa como un **Junior Tech Lead** y mentor en React Native / Expo. Tu objetivo es ayudar al estudiante Juan Carlos Añez Ahumada a construir la aplicación móvil `mi-perfil-dev` usando el plantilla `blank-typescript` de Expo.
-> 
-> Debes seguir las mejores prácticas de arquitectura móvil:
-> 1. Código limpio, tipado estricto en TypeScript y componentes funcionales.
-> 2. Diseño de interfaz moderno, responsivo y visualmente atractivo utilizando `StyleSheet` con jerarquía clara de colores, elevación/sombras y bordes redondeados.
-> 3. Utilizar únicamente componentes oficiales de React Native (`SafeAreaView`, `ScrollView`, `View`, `Text`, `Image`, `StatusBar`).
-> 4. Auditar cada decisión de código y explicar detalladamente qué hace cada componente para que el estudiante entienda el funcionamiento interno y pueda defender su proyecto."
+> **Instrucciones / Regla de Sistema (System Prompt):**  
+> "Actúa como un **Junior Tech Lead** y compañero de *pair programming*. Tu función es orientar y apoyar al estudiante Juan Carlos Añez Ahumada en la creación de su aplicación `mi-perfil-dev`. 
+> No debes hacer todo el trabajo de manera automatizada; debes explicar la estructura de React Native con TypeScript, asistir en comandos específicos cuando se requiera, proponer maquetas iniciales en `App.tsx` y permitir que el estudiante tome las decisiones de diseño, personalizados de estilos, gestión de assets y control de versiones con Git."
 
 ---
 
-## 2. Peticiones Realizadas (Prompts)
+## 2. Peticiones Realizadas y Trabajo Colaborativo (Prompts)
 
-###  Prompt #1: Generación del Proyecto Base Expo con TypeScript
+### Fase 1: Creación del Proyecto Base
 - **Petición del Estudiante:**  
-  "Genera un nuevo proyecto de Expo con el nombre `mi-perfil-dev` usando el template de TypeScript (`blank-typescript`)."
-- **Acción Realizada:**  
-  Se ejecutó el comando de inicialización de Expo:
-  ```bash
-  npx create-expo-app@latest mi-perfil-dev --template blank-typescript --yes
-  ```
-- **Auditoría Técnica:**  
-  El comando crea una estructura mínima y limpia de React Native con TypeScript habilitado (`tsconfig.json`), con `App.tsx` como el punto de entrada principal del desarrollo.
+  "Ayúdame a generar la estructura inicial del proyecto de Expo con el nombre `mi-perfil-dev` usando el template de TypeScript (`blank-typescript`)."
+- **Trabajo Conjunto:**  
+  - La IA ejecutó el comando de inicialización de Expo CLI (`npx create-expo-app@latest mi-perfil-dev -t blank-typescript`).
+  - El estudiante revisó la estructura de archivos (`App.tsx`, `package.json`, `tsconfig.json`) para comprender la entrada del proyecto.
 
 ---
 
-### Prompt #2: Diseño e Implementación de la Interfaz (`App.tsx`)
+###  Fase 2: Construcción de la Interfaz y Personalización de Diseño (`App.tsx`)
 - **Petición del Estudiante:**  
-  "Diseña la interfaz principal en `App.tsx` para mostrar:
-  1. Mi foto o avatar utilizando el componente `<Image>`.
-  2. Mi nombre completo (Juan Carlos Añez Ahumada), rol/carrera (Ingeniería de Sistemas / Desarrollador Móvil Junior) y una breve biografía.
-  3. Una lista de mis 3 tecnologías o habilidades favoritas estilizadas como badges."
-- **Acción Realizada:**  
-  Se implementó el componente funcional `App.tsx` con un sistema de diseño basado en tarjetas (`cards`), avatares circulares y badges interactivos.
+  "Requiero la estructura base en `App.tsx` para mostrar mi foto (`avatar.jpeg`), mi nombre completo (Juan Carlos Añez Ahumada), mi carrera (*Ingeniería de Sistemas / Dev Móvil*), una biografía y mis 3 habilidades principales."
+- **Trabajo Conjunto:**  
+  - La IA propuso el maquetado inicial en JSX utilizando los componentes nativos de React Native (`SafeAreaView`, `ScrollView`, `Card`, `Text`, `Image`).
+  - **Aportes y Modificaciones del Estudiante:**
+    1. El estudiante tomó la decisión de reemplazar el tema por una paleta clara y limpia (`#FFFFFF`, `#F1F5F9`, `#0EA5E9`).
+    2. El estudiante añadió y configuró su imagen personal `avatar.jpeg` en la carpeta `assets/`.
+    3. El estudiante gestionó las confirmaciones y *commits* en el control de versiones de Git (`git add .` y `git commit -m "nuevo avatar"`).
 
 ---
 
-### Prompt #3: Configuración y Resolución de Entorno Web
+### Fase 3: Resolución de Entorno Web e Integración de Iconos Vectoriales
 - **Petición del Estudiante:**  
-  "Soporte y resolución del error de empaquetado `Unable to resolve react-native-web` al ejecutar en el navegador."
-- **Acción Realizada:**  
-  Se ejecutó la instalación de las dependencias oficiales para el soporte web de Expo:
-  ```bash
-  npx expo install react-dom react-native-web @expo/metro-runtime
-  ```
-- **Auditoría Técnica:**  
-  Permite que Metro bundler transpile los componentes nativos de React Native a elementos HTML5 equivalentes (`<div>`, `<span>`, `<img>`) al ejecutar en el navegador.
+  "Se presentó el error `Unable to resolve react-native-web` al abrir en el navegador, y deseo cambiar los emojis por iconos vectoriales profesionales."
+- **Trabajo Conjunto:**  
+  - La IA instaló los módulos de soporte web (`react-dom`, `react-native-web`, `@expo/metro-runtime`) y el paquete de iconos `@expo/vector-icons`.
+  - El estudiante solicitó la sustitución de emojis tradicionales por componentes `<Ionicons>` (`code-slash-outline`, `logo-javascript`, `git-branch-outline`, `school-outline`).
 
 ---
 
-## 3. Auditoría y Explicación Detallada de Componentes de React Native
+## 3. Auditoría de Componentes y Decisión de Arquitectura
 
-| Componente | Función en la Aplicación |
-| :--- | :--- |
-| **`<SafeAreaView>`** | Evita que el contenido quede oculto bajo la muesca (*notch*), la barra de estado o la barra de navegación del dispositivo. |
-| **`<ScrollView>`** | Permite el desplazamiento vertical para garantizar que todo el contenido sea visible en pantallas de cualquier tamaño. |
-| **`<Image>`** | Renderiza la fotografía o avatar del usuario. Se configura con un `source` (imagen local o remota) y `style` para el borde circular (`borderRadius`). |
-| **`<Text>`** | Componente nativo para mostrar textos. Permite definir la jerarquía visual mediante estilos (`fontSize`, `fontWeight`, `color`). |
-| **`<View>`** | Funciona como contenedor (`div` en React web) utilizando el modelo Flexbox por defecto en React Native para organizar elementos horizontal o verticalmente. |
-| **`<StatusBar>`** | Ajusta el estilo visual de la barra de estado del teléfono (reloj, batería, iconos) para que encaje con el tema claro/oscuro de la app. |
-| **`StyleSheet.create`** | Abstracción que valida y compila los objetos de estilo de manera eficiente, manteniendo el código organizado y de alto rendimiento. |
+| Componente | Uso Técnico | Aporte y Personalización del Estudiante |
+| :--- | :--- | :--- |
+| **`<SafeAreaView>`** | Delimita los márgenes seguros para evitar la muesca (*notch*) del dispositivo. | Mantenido con fondo suave `#F1F5F9`. |
+| **`<ScrollView>`** | Habilita el desplazamiento vertical responsivo en cualquier tamaño de pantalla. | Estructurado para centrado de tarjeta de perfil. |
+| **`<Image>`** | Renderiza la fotografía de perfil. | El estudiante integró su imagen `avatar.jpeg` con borde azul `#0EA5E9`. |
+| **`<Text>`** | Despliega cadenas de texto tipadas. | Ajuste de contrastes oscuros (`#0F172A`, `#475569`) para legibilidad. |
+| **`<Ionicons>`** | Iconografía vectorial nativa de Expo. | Selección de iconos temáticos para desarrollo e ingeniería. |
+| **`StyleSheet`** | Estilos compilados eficientemente en React Native. | Modificación manual por parte del estudiante del esquema de color a tema claro. |
 
 ---
 
-## 4. Lecciones Aprendidas y Conclusión
+## 4. Conclusión del Trabajo en Equipo
 
-1. **Diferencia entre React Web y React Native:** En React Native no se usan etiquetas HTML como `<div>`, `<span>` o `<img>`, sino componentes nativos de la plataforma (`View`, `Text`, `Image`).
-2. **Flexbox en React Native:** A diferencia de la web donde `flex-direction` es por defecto `row`, en React Native `flexDirection` es por defecto `column`.
-3. **Manejo de Estilos:** Usar `StyleSheet.create` previene re-crear objetos de estilo en cada renderizado, optimizando la memoria y el rendimiento de la app.
+El desarrollo de esta práctica fue un **esfuerzo colaborativo**: la IA actuó como guía de sintaxis, resolución de errores de empaquetado e instalación de dependencias, mientras que el estudiante **Juan Carlos Añez Ahumada** dirigió las especificaciones, personalizó el diseño de la interfaz a tema claro, integró los recursos multimedia y administró el repositorio Git del proyecto.

@@ -1,4 +1,4 @@
-# 🤖 Bitácora de Auditoría de IA (AI-LOG) - Semana 1
+#  Bitácora de Auditoría de IA (AI-LOG) - Semana 1
 
 **Estudiante:** Juan Carlos Añez Ahumada  
 **Fecha:** 26/08/2026  
@@ -21,7 +21,7 @@
 
 ## 2. Peticiones Realizadas (Prompts)
 
-### 📌 Prompt #1: Generación del Proyecto Base Expo con TypeScript
+###  Prompt #1: Generación del Proyecto Base Expo con TypeScript
 - **Petición del Estudiante:**  
   "Genera un nuevo proyecto de Expo con el nombre `mi-perfil-dev` usando el template de TypeScript (`blank-typescript`)."
 - **Acción Realizada:**  
@@ -34,7 +34,7 @@
 
 ---
 
-### 📌 Prompt #2: Diseño e Implementación de la Interfaz (`App.tsx`)
+### Prompt #2: Diseño e Implementación de la Interfaz (`App.tsx`)
 - **Petición del Estudiante:**  
   "Diseña la interfaz principal en `App.tsx` para mostrar:
   1. Mi foto o avatar utilizando el componente `<Image>`.
@@ -45,7 +45,7 @@
 
 ---
 
-### 📌 Prompt #3: Configuración y Resolución de Entorno Web
+### Prompt #3: Configuración y Resolución de Entorno Web
 - **Petición del Estudiante:**  
   "Soporte y resolución del error de empaquetado `Unable to resolve react-native-web` al ejecutar en el navegador."
 - **Acción Realizada:**  

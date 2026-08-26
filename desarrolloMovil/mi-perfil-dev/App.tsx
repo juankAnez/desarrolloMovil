@@ -9,15 +9,32 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
 export default function App() {
-  // Lista de 3 tecnologías / habilidades favoritas
+  // Lista de 3 tecnologías con NOMBRES DE ICONOS de @expo/vector-icons (Ionicons)
+  // Puedes buscar más nombres en: https://icons.expo.fyi/
   const skills = [
-    { id: '1', title: 'React Native & TypeScript', icon: '⚡', color: '#00D8FF' },
-    { id: '2', title: 'JavaScript (ES6+) & Mobile UI', icon: '🚀', color: '#F7DF1E' },
-    { id: '3', title: 'Git & Expo Tooling', icon: '🛠️', color: '#4630EB' },
+    {
+      id: '1',
+      title: 'React Native & TypeScript',
+      iconName: 'code-slash-outline' as const,
+      color: '#00D8FF',
+    },
+    {
+      id: '2',
+      title: 'JavaScript (ES6+) & Mobile UI',
+      iconName: 'logo-javascript' as const,
+      color: '#F7DF1E',
+    },
+    {
+      id: '3',
+      title: 'Git & Expo Tooling',
+      iconName: 'git-branch-outline' as const,
+      color: '#38BDF8',
+    },
   ];
 
   return (
@@ -47,14 +64,18 @@ export default function App() {
 
           {/* Rol / Carrera */}
           <View style={styles.roleTag}>
+            <Ionicons name="school-outline" size={14} color="#38BDF8" style={{ marginRight: 6 }} />
             <Text style={styles.roleText}>
-              🎓 Estudiante de Ingeniería de Sistemas | Dev Móvil
+              Estudiante de Ingeniería de Sistemas | Dev Móvil
             </Text>
           </View>
 
           {/* Biografía */}
           <View style={styles.bioContainer}>
-            <Text style={styles.sectionTitle}>📝 Biografía</Text>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="document-text-outline" size={18} color="#38BDF8" style={{ marginRight: 8 }} />
+              <Text style={styles.sectionTitle}>Biografía</Text>
+            </View>
             <Text style={styles.bioText}>
               Estudiante apasionado por el desarrollo de software y la creación
               de aplicaciones móviles modernas, responsivas e interactivas.
@@ -67,14 +88,20 @@ export default function App() {
 
           {/* Lista de 3 Tecnologías o Habilidades Favoritas */}
           <View style={styles.skillsSection}>
-            <Text style={styles.sectionTitle}>
-              🚀 Top 3 Habilidades & Tecnologías
-            </Text>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="sparkles-outline" size={18} color="#38BDF8" style={{ marginRight: 8 }} />
+              <Text style={styles.sectionTitle}>Top 3 Habilidades & Tecnologías</Text>
+            </View>
 
             <View style={styles.skillsContainer}>
               {skills.map((skill) => (
                 <View key={skill.id} style={styles.skillBadge}>
-                  <Text style={styles.skillIcon}>{skill.icon}</Text>
+                  <Ionicons
+                    name={skill.iconName}
+                    size={22}
+                    color={skill.color}
+                    style={{ marginRight: 12 }}
+                  />
                   <Text style={styles.skillText}>{skill.title}</Text>
                 </View>
               ))}
@@ -94,7 +121,7 @@ export default function App() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0F172A', // Fondo oscuro moderno (Slate 900)
+    backgroundColor: '#F1F5F9', // Fondo claro (gris muy suave)
   },
   scrollContainer: {
     alignItems: 'center',
@@ -103,26 +130,25 @@ const styles = StyleSheet.create({
   headerBanner: {
     width: '100%',
     height: 120,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#E2E8F0', // Gris suave para el banner
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
   card: {
     width: width * 0.9,
     maxWidth: 420,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#FFFFFF', // Fondo blanco puro para la tarjeta
     borderRadius: 24,
     padding: 24,
     marginTop: -60,
     alignItems: 'center',
-    // Sombras para iOS y Android
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.08, // Sombra más sutil
     shadowRadius: 15,
-    elevation: 8,
+    elevation: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0', // Borde gris claro
   },
   avatarContainer: {
     position: 'relative',
@@ -133,7 +159,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     borderWidth: 4,
-    borderColor: '#38BDF8',
+    borderColor: '#0EA5E9', // Azul un poco más intenso para resaltar sobre fondo claro
   },
   onlineBadge: {
     position: 'absolute',
@@ -144,52 +170,58 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: '#22C55E',
     borderWidth: 3,
-    borderColor: '#1E293B',
+    borderColor: '#FFFFFF', // Borde blanco para que se vea limpio
   },
   name: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A', // Texto oscuro (casi negro)
     textAlign: 'center',
     marginBottom: 6,
   },
   roleTag: {
-    backgroundColor: '#0F172A',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F5F9', // Fondo gris muy suave
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 20,
     marginBottom: 20,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
   },
   roleText: {
-    color: '#38BDF8',
+    color: '#0EA5E9', // Azul
     fontSize: 13,
     fontWeight: '600',
     textAlign: 'center',
   },
   bioContainer: {
     width: '100%',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F8FAFC', // Fondo casi blanco con un tono gris
     padding: 16,
     borderRadius: 16,
     marginBottom: 20,
   },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
   sectionTitle: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#F8FAFC',
-    marginBottom: 8,
+    color: '#0F172A', // Oscuro
   },
   bioText: {
     fontSize: 14,
-    color: '#94A3B8',
+    color: '#475569', // Gris medio, legible
     lineHeight: 22,
   },
   divider: {
     width: '100%',
     height: 1,
-    backgroundColor: '#334155',
+    backgroundColor: '#E2E8F0',
     marginBottom: 20,
   },
   skillsSection: {
@@ -202,25 +234,21 @@ const styles = StyleSheet.create({
   skillBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F172A',
+    backgroundColor: '#F8FAFC', // Fondo claro para cada badge
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#334155',
-  },
-  skillIcon: {
-    fontSize: 18,
-    marginRight: 12,
+    borderColor: '#E2E8F0',
   },
   skillText: {
-    color: '#E2E8F0',
+    color: '#1E293B', // Texto oscuro
     fontSize: 14,
     fontWeight: '600',
   },
   footerText: {
     marginTop: 24,
-    color: '#64748B',
+    color: '#94A3B8', // Gris medio
     fontSize: 12,
   },
 });

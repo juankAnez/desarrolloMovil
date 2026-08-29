@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   StyleSheet,
   Text,
@@ -43,16 +44,22 @@ export default function App() {
   ];
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <StatusBar style="light" />
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Banner de Encabezado Decorativo */}
-        <View style={styles.headerBanner} />
+    <LinearGradient
+      colors={['#F5F3FF', '#F8FAFC', '#F0F9FF', '#FAFAF9']}
+      locations={[0, 0.35, 0.7, 1]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.root}
+    >
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="dark" />
+        <ScrollView
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.headerSpacer} />
 
-        {/* Tarjeta Principal de Perfil */}
+          {/* Tarjeta Principal de Perfil */}
         <View style={styles.card}>
           {/* Contenedor del Avatar / Foto */}
           <View style={styles.avatarContainer}>
@@ -142,26 +149,27 @@ export default function App() {
         <Text style={styles.footerText}>
           Desarrollado con Expo & React Native • 2026
         </Text>
-      </ScrollView>
-    </SafeAreaView>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
   safeArea: {
     flex: 1,
-    backgroundColor: '#F1F5F9',
+    backgroundColor: 'transparent',
   },
   scrollContainer: {
     alignItems: 'center',
     paddingBottom: 40,
   },
-  headerBanner: {
+  headerSpacer: {
     width: '100%',
-    height: 120,
-    backgroundColor: '#E2E8F0',
-    borderBottomLeftRadius: 30,
-    borderBottomRightRadius: 30,
+    height: 48,
   },
   card: {
     width: width * 0.9,
@@ -169,13 +177,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 24,
     padding: 24,
-    marginTop: -60,
+    marginTop: 8,
     alignItems: 'center',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.06,
     shadowRadius: 15,
-    elevation: 6,
+    elevation: 4,
     borderWidth: 1,
     borderColor: '#E2E8F0',
   },
@@ -213,6 +221,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#F1F5F9',
     paddingVertical: 6,
+    paddingHorizontal: 12,
     borderRadius: 20,
     marginBottom: 20,
     borderWidth: 1,
@@ -310,7 +319,8 @@ const styles = StyleSheet.create({
   },
   footerText: {
     marginTop: 24,
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
+    fontWeight: '500',
   },
 });

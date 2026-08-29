@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import {
   StyleSheet,
@@ -8,12 +8,18 @@ import {
   SafeAreaView,
   ScrollView,
   Dimensions,
+  Pressable,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 const { width } = Dimensions.get('window');
 
 export default function App() {
+  const [likes, setLikes] = useState<number>(0);
+
+  const handleLike = () => {
+    setLikes((prev) => prev + 1);
+  };
 
   const skills = [
     {
@@ -105,6 +111,30 @@ export default function App() {
                 </View>
               ))}
             </View>
+          </View>
+
+          {/* Contador de Likes / Reacciones */}
+          <View style={styles.likesSection}>
+            <View style={styles.sectionHeader}>
+              <Ionicons name="heart-outline" size={18} color="#38BDF8" style={{ marginRight: 8 }} />
+              <Text style={styles.sectionTitle}>Reacciones</Text>
+            </View>
+
+            <Pressable
+              onPress={handleLike}
+              style={({ pressed }) => [
+                styles.likeButton,
+                pressed && styles.likeButtonPressed,
+              ]}
+              accessibilityRole="button"
+              accessibilityLabel="Dar like al perfil"
+            >
+              <Ionicons name="heart" size={24} color="#EF4444" />
+              <Text style={styles.likeCount}>{likes}</Text>
+              <Text style={styles.likeLabel}>
+                {likes === 1 ? 'Like' : 'Likes'}
+              </Text>
+            </Pressable>
           </View>
         </View>
 
@@ -243,6 +273,40 @@ const styles = StyleSheet.create({
     color: '#1E293B',
     fontSize: 14,
     fontWeight: '600',
+  },
+  likesSection: {
+    width: '100%',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
+  },
+  likeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#FEF2F2',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#FECACA',
+    marginTop: 8,
+    gap: 8,
+  },
+  likeButtonPressed: {
+    opacity: 0.7,
+    transform: [{ scale: 0.97 }],
+  },
+  likeCount: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#EF4444',
+  },
+  likeLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#B91C1C',
   },
   footerText: {
     marginTop: 24,

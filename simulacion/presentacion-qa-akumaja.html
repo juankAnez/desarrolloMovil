@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Informe QA — Plataforma Académica Akumaja</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%235b5bd6'/%3E%3Cpath d='M32 14 6 26l26 12 20-9.2V40h4V26z' fill='%23fff'/%3E%3Cpath d='M14 31v10c0 3 8 6 18 6s18-3 18-6V31l-18 8z' fill='%23c7bfff'/%3E%3Cpath d='m38 26 4 4 10-10-4-4-6 6-4-4z' fill='%2310b981'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f6f8ff;
+    --panel:#ffffff;
+    --ink:#1e293b;
+    --muted:#64748b;
+    --primary:#5b5bd6;
+    --primary-2:#7c3aed;
+    --amber:#f59e0b;
+    --red:#ef4444;
+    --green:#10b981;
+    --violet:#8b5cf6;
+    --line:#e4e9f5;
+    --shadow:0 10px 30px -14px rgba(59,91,219,.2);
+    --radius:18px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Plus Jakarta Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+    background:linear-gradient(180deg,#f6f8ff 0%,#eef2ff 100%);
+    color:var(--ink);overflow-x:hidden;
+  }
+  ::selection{background:var(--primary);color:#fff}
+
+  .progress{position:fixed;top:0;left:0;height:4px;width:0;background:var(--primary);z-index:100;transition:width .3s ease}
+
+  .dots{position:fixed;right:20px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:12px;z-index:90}
+  .dot{width:12px;height:12px;border-radius:50%;border:2px solid var(--primary);background:transparent;cursor:pointer;transition:.3s;opacity:.5}
+  .dot:hover,.dot.active{background:var(--primary);transform:scale(1.2);opacity:1}
+
+  .arrows{position:fixed;bottom:26px;right:22px;display:flex;gap:10px;z-index:90}
+  .arrow{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);cursor:pointer;background:var(--panel);color:var(--primary);font-size:18px;box-shadow:var(--shadow);transition:.3s;display:grid;place-items:center}
+  .arrow:hover{background:var(--primary);color:#fff;transform:translateY(-2px)}
+
+  .slides{scroll-snap-type:y mandatory;height:100vh;overflow-y:auto;scrollbar-width:none}
+  .slides::-webkit-scrollbar{display:none}
+  .slide{min-height:100vh;scroll-snap-align:start;display:flex;align-items:center;justify-content:center;padding:70px clamp(20px,6vw,90px);position:relative}
+  .slide-inner{width:100%;max-width:1100px;position:relative;z-index:2}
+
+  h1,h2,h3{line-height:1.2;font-weight:800}
+  h1{font-size:clamp(2.2rem,5.5vw,4.4rem);letter-spacing:-.02em}
+  h2{font-size:clamp(1.6rem,3.4vw,2.6rem);letter-spacing:-.01em}
+  .sub{color:var(--muted);font-size:clamp(1rem,1.5vw,1.15rem);font-weight:500;line-height:1.6}
+  .accent{color:var(--primary)}
+
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:rgba(91,91,214,.1);color:var(--primary);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;padding:8px 16px;border-radius:999px;margin-bottom:20px}
+
+  .reveal{opacity:0;transform:translateY(30px);transition:opacity .7s ease,transform .7s ease}
+  .reveal.in{opacity:1;transform:none}
+  .d1{transition-delay:.1s}.d2{transition-delay:.2s}.d3{transition-delay:.3s}.d4{transition-delay:.4s}
+
+  .chips{display:flex;flex-wrap:wrap;gap:12px;margin-top:36px}
+  .chip{background:var(--panel);border:1px solid var(--line);padding:14px 22px;border-radius:14px;font-weight:700;font-size:1rem;display:flex;align-items:center;gap:10px}
+  .chip b{font-size:1.5rem;color:var(--primary)}
+  .chip .tag{color:var(--muted);font-weight:600;font-size:.82rem}
+
+  .scroll-hint{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--muted);font-size:12px;font-weight:600;letter-spacing:.1em;animation:bob 2s infinite;z-index:3}
+  @keyframes bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,10px)}}
+  .mouse{width:22px;height:34px;border:2px solid var(--muted);border-radius:12px;position:relative}
+  .mouse::after{content:"";position:absolute;top:6px;left:50%;width:4px;height:7px;margin-left:-2px;background:var(--primary);border-radius:4px;animation:wheel 1.6s infinite}
+  @keyframes wheel{0%{opacity:1;transform:translateY(0)}100%{opacity:0;transform:translateY(9px)}}
+
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow)}
+
+  .steps{counter-reset:step;list-style:none;display:grid;gap:12px;margin-top:20px}
+  .steps li{display:flex;gap:14px;align-items:flex-start}
+  .steps li::before{counter-increment:step;content:counter(step);min-width:34px;height:34px;border-radius:10px;background:rgba(91,91,214,.1);color:var(--primary);font-weight:800;display:grid;place-items:center;font-size:.95rem}
+
+  .sev{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:999px;font-size:.72rem;font-weight:800;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap}
+  .sev.media{background:#fef3c7;color:#b45309}
+  .sev.baja{background:#d1fae5;color:#047857}
+  .sev.obs{background:#ede9fe;color:#6d28d9}
+  .sev .punto{width:8px;height:8px;border-radius:50%;background:currentColor}
+
+  .finding{display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 22px;transition:.3s}
+  .finding:hover{transform:translateX(6px);box-shadow:var(--shadow)}
+  .finding .id{font-size:.78rem;font-weight:800;color:var(--primary);letter-spacing:.06em;min-width:64px}
+  .finding h3{font-size:1.02rem}
+  .finding p{color:var(--muted);font-size:.88rem;line-height:1.5;margin-top:2px}
+
+  .ev-col{display:grid;grid-template-columns:1.15fr .85fr;gap:34px;align-items:center}
+  .figure{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+  .figure img{width:100%;display:block;max-height:56vh;object-fit:contain;background:#fff}
+  .figure .cap{padding:16px 22px;border-top:1px solid var(--line)}
+  .figure .cap .fig-num{font-weight:800;color:var(--primary);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase}
+  .figure .cap p{color:var(--muted);font-size:.9rem;line-height:1.5;margin-top:4px}
+  .tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .tags span{background:rgba(91,91,214,.08);color:var(--primary);font-weight:700;font-size:.76rem;padding:5px 12px;border-radius:999px}
+
+  .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:16px;margin:30px 0}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;text-align:center;box-shadow:var(--shadow)}
+  .stat .val{font-size:2.5rem;font-weight:800;line-height:1}
+  .stat .lbl{color:var(--muted);font-weight:600;font-size:.85rem;margin-top:8px}
+
+  .bars{display:grid;gap:12px;margin-top:8px}
+  .bar-row{display:grid;grid-template-columns:130px 1fr 30px;gap:14px;align-items:center}
+  .bar-row .name{font-weight:600;font-size:.85rem;color:var(--muted)}
+  .bar-track{background:#eef1f8;border-radius:999px;height:12px;overflow:hidden}
+  .bar-fill{height:100%;border-radius:999px;width:0;transition:width 1.2s cubic-bezier(.22,1,.36,1)}
+  .bar-row .cnt{font-weight:800;font-size:.9rem}
+
+  .rec{display:flex;gap:16px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 22px;transition:.3s}
+  .rec:hover{transform:translateX(6px);box-shadow:var(--shadow)}
+  .rec .n{min-width:36px;height:36px;border-radius:10px;background:var(--primary);color:#fff;font-weight:800;display:grid;place-items:center;font-size:.9rem}
+  .rec h4{font-size:1rem;margin-bottom:3px}
+  .rec p{color:var(--muted);font-size:.9rem;line-height:1.5}
+  .rec-list{display:grid;gap:12px;margin-top:30px}
+
+  .concl{display:grid;gap:12px;margin-bottom:28px}
+  .concl p{display:flex;gap:12px;align-items:flex-start;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 20px;font-size:.95rem;line-height:1.5}
+  .concl p b{color:var(--primary)}
+
+  .gallery{display:grid;grid-template-columns:minmax(240px,420px);gap:18px;margin-top:20px}
+  .gallery .figure img{max-height:38vh}
+
+  .foot{margin-top:34px;color:var(--muted);font-size:.85rem;text-align:center;font-weight:600}
+
+  .badge-top{position:fixed;top:18px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,.9);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:999px;padding:9px 20px;font-weight:800;font-size:.85rem;color:var(--primary);box-shadow:var(--shadow);z-index:95;display:flex;gap:8px;align-items:center;white-space:nowrap}
+  .badge-top .sp{width:7px;height:7px;border-radius:50%;background:var(--green);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{opacity:1}50%{opacity:.3}100%{opacity:1}}
+
+  @media(max-width:820px){
+    .ev-col{grid-template-columns:1fr}
+    .finding{grid-template-columns:1fr;gap:10px}
+    .finding .sev{justify-self:start}
+    .dots{right:8px}.dot{width:10px;height:10px}
+    .bar-row{grid-template-columns:92px 1fr 26px}
+    .slide{padding:70px 18px}
+  }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="badge-top"><span class="sp"></span> Informe de Evaluación QA · Akumaja</div>
+
+<nav class="dots" id="dots"></nav>
+<div class="arrows">
+  <button class="arrow" id="prev" aria-label="Anterior">&#8593;</button>
+  <button class="arrow" id="next" aria-label="Siguiente">&#8595;</button>
+</div>
+
+<div class="slides" id="slides">
+
+  <!-- PORTADA -->
+  <section class="slide" data-title="Portada">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">Plataforma Académica Institucional</span>
+      <h1 class="reveal d1">Informe de Evaluación <span class="accent">QA</span><br>de la Plataforma <span class="accent">Akumaja</span></h1>
+      <p class="sub reveal d2" style="max-width:620px;margin-top:16px">
+        Análisis exploratorio de calidad, usabilidad, navegación e interfaz, desde la
+        perspectiva de un usuario estudiante.
+      </p>
+      <div class="chips">
+        <div class="chip reveal d2"><b>11</b><span class="tag">hallazgos<br>registrados</span></div>
+        <div class="chip reveal d2"><b>5</b><span class="tag">severidad<br>media</span></div>
+        <div class="chip reveal d3"><b>3</b><span class="tag">severidad<br>baja</span></div>
+        <div class="chip reveal d3"><b>3</b><span class="tag">observa-<br>ciones</span></div>
+      </div>
+      <div class="scroll-hint"><div class="mouse"></div>Desliza o usa las flechas</div>
+    </div>
+  </section>
+
+  <!-- OBJETIVOS -->
+  <section class="slide" data-title="Objetivos">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">01 · Objetivos</span>
+      <h2 class="reveal d1">¿Qué buscamos <span class="accent">evaluar</span>?</h2>
+      <p class="sub reveal d2" style="max-width:740px;margin-top:16px">
+        Evaluar de manera exploratoria la calidad y funcionamiento de la plataforma,
+        identificando errores, inconsistencias y oportunidades de mejora que afecten la
+        experiencia de los usuarios.
+      </p>
+      <ul class="steps reveal d3" style="margin-top:34px">
+        <li><span>Verificar el funcionamiento de las principales funcionalidades.</span></li>
+        <li><span>Identificar errores durante la navegación y el uso de la plataforma.</span></li>
+        <li><span>Evaluar la facilidad de uso y comprensión de las distintas secciones.</span></li>
+        <li><span>Registrar evidencias, clasificar los hallazgos por impacto y proponer mejoras.</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- METODOLOGÍA -->
+  <section class="slide" data-title="Metodología">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">02 · Metodología</span>
+      <h2 class="reveal d1">Cómo se realizó la <span class="accent">evaluación</span></h2>
+      <div class="ev-col" style="margin-top:32px">
+        <div>
+          <p class="sub reveal d2">Pruebas exploratorias desde la perspectiva de un <b>usuario estudiante</b>, comparando el comportamiento obtenido con el esperado en cada sección.</p>
+          <ul class="steps reveal d3">
+            <li><span>Acciones realizadas sobre las funcionalidades disponibles.</span></li>
+            <li><span>Registro de resultado esperado vs. resultado obtenido.</span></li>
+            <li><span>Clasificación de cada hallazgo por nivel de impacto.</span></li>
+            <li><span>Evidencia con captura de pantalla y recomendación de mejora.</span></li>
+          </ul>
+        </div>
+        <div class="figure reveal d3">
+          <img src="Captura%20de%20pantalla%202026-08-20%20093308.png" alt="Panel de notificaciones de la plataforma" loading="lazy">
+          <div class="cap">
+            <span class="fig-num">Panel de notificaciones</span>
+            <p>Vista del panel de notificaciones revisado durante las pruebas.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- HALLAZGOS -->
+  <section class="slide" data-title="Hallazgos">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">03 · Hallazgos principales</span>
+      <h2 class="reveal d1">Problemas y <span class="accent">oportunidades</span> detectadas</h2>
+      <div class="rec-list">
+        <div class="finding reveal d1"><span class="id">QA-001</span><div><h3>Sin notificaciones de actividades pendientes</h3><p>El estudiante debe revisar cada curso manualmente para saber qué le falta por hacer.</p></div><span class="sev media"><span class="punto"></span>Media</span></div>
+        <div class="finding reveal d2"><span class="id">QA-002</span><div><h3>Navegación poco intuitiva</h3><p>Se requieren varios clics y regresos para ubicar actividades o materiales de un curso.</p></div><span class="sev media"><span class="punto"></span>Media</span></div>
+        <div class="finding reveal d2"><span class="id">QA-003</span><div><h3>Sin vista rápida de pendientes</h3><p>Con varias asignaturas, es difícil saber de un vistazo cuáles tienen actividades pendientes.</p></div><span class="sev media"><span class="punto"></span>Media</span></div>
+        <div class="finding reveal d3"><span class="id">QA-004</span><div><h3>Falta de uniformidad visual</h3><p>Cursos, actividades y materiales no se diferencian claramente entre sí.</p></div><span class="sev baja"><span class="punto"></span>Baja</span></div>
+        <div class="finding reveal d3"><span class="id">QA-005</span><div><h3>Instrucciones variables</h3><p>La claridad de las instrucciones depende de cómo cada docente las registra, sin formato uniforme.</p></div><span class="sev obs"><span class="punto"></span>Observación</span></div>
+        <div class="finding reveal d4"><span class="id">QA-006</span><div><h3>Sin avisos de vencimiento</h3><p>No hay mensajes ni alertas cuando una actividad está próxima a vencer o ya venció.</p></div><span class="sev media"><span class="punto"></span>Media</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIGURA 1 · HOME -->
+  <section class="slide" data-title="Evidencia · Home">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">04 · Evidencias · Figura 1</span>
+      <h2 class="reveal d1" style="margin-bottom:30px">Página principal (<span class="accent">Home</span>)</h2>
+      <div class="ev-col">
+        <div class="figure reveal d2">
+          <img src="dahsboard%20akumaja.png" alt="Figura 1: Página principal de la plataforma">
+          <div class="cap">
+            <span class="fig-num">FIGURA 1 · HOME</span>
+            <p>En la página principal no se observa ningún panel, contador o aviso de actividades pendientes o próximas a vencer.</p>
+          </div>
+        </div>
+        <div>
+          <p class="sub reveal d3">El home no informa al estudiante sobre tareas pendientes, próximas a vencer o vencidas, lo que obliga a entrar curso por curso para verificar sus obligaciones.</p>
+          <div class="tags reveal d4"><span>QA-001 · Sin notificaciones</span><span>QA-006 · Sin avisos de vencimiento</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIGURA 2 · PANEL DE NOTIFICACIONES -->
+  <section class="slide" data-title="Evidencia · Notificaciones">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">05 · Evidencias · Figura 2</span>
+      <h2 class="reveal d1" style="margin-bottom:30px">Panel de <span class="accent">notificaciones</span></h2>
+      <div class="ev-col">
+        <div>
+          <p class="sub reveal d3">El panel no genera avisos cuando hay actividades pendientes, próximas a vencer o vencidas, por lo que el estudiante pierde fechas de entrega sin ser advertido.</p>
+          <div class="tags reveal d4"><span>QA-003 · Sin vista rápida de pendientes</span><span>QA-006 · Sin avisos de vencimiento</span></div>
+        </div>
+        <div class="figure reveal d2">
+          <img src="Captura%20de%20pantalla%202026-08-20%20093308.png" alt="Figura 2: Panel de notificaciones de la plataforma">
+          <div class="cap">
+            <span class="fig-num">FIGURA 2 · NOTIFICACIONES</span>
+            <p>Panel de notificaciones: no se observan alertas sobre actividades pendientes o próximas a vencer.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FIGURA 3 · SISTEMA DE ENLACES -->
+  <section class="slide" data-title="Evidencia · Enlaces">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">06 · Evidencias · Figura 3</span>
+      <h2 class="reveal d1" style="margin-bottom:30px">Sistema de <span class="accent">enlaces y URLs</span></h2>
+      <div class="ev-col">
+        <div class="figure reveal d2">
+          <img src="Captura%20de%20pantalla%202026-08-20%20092401.png" alt="Figura 3: Sistema de enlaces y URLs de la plataforma">
+          <div class="cap">
+            <span class="fig-num">FIGURA 3 · ENLACES / URLs</span>
+            <p>Sistema de enlaces y direcciones de la plataforma, revisado durante el recorrido exploratorio.</p>
+          </div>
+        </div>
+        <div>
+          <p class="sub reveal d3">Los enlaces y rutas de la plataforma deben ser claros y consistentes para que el estudiante ubique rápidamente cada curso y sus actividades.</p>
+          <div class="tags reveal d4"><span>QA-002 · Navegación</span><span>QA-004 · Uniformidad visual</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RESUMEN -->
+  <section class="slide" data-title="Resumen de resultados">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">07 · Resumen de resultados</span>
+      <h2 class="reveal d1">11 hallazgos en <span class="accent">números</span></h2>
+      <div class="stats-row">
+        <div class="stat reveal d1"><div class="val accent" data-count="11">0</div><div class="lbl">Hallazgos totales</div></div>
+        <div class="stat reveal d2"><div class="val" style="color:var(--amber)" data-count="5">0</div><div class="lbl">Severidad media</div></div>
+        <div class="stat reveal d3"><div class="val" style="color:var(--green)" data-count="3">0</div><div class="lbl">Severidad baja</div></div>
+        <div class="stat reveal d4"><div class="val" style="color:var(--violet)" data-count="3">0</div><div class="lbl">Observaciones</div></div>
+      </div>
+      <div class="panel reveal d2">
+        <h3 style="margin-bottom:16px">Hallazgos por categoría</h3>
+        <div class="bars">
+          <div class="bar-row"><span class="name">Funcionalidad</span><div class="bar-track"><div class="bar-fill" style="background:var(--amber)" data-w="50"></div></div><span class="cnt">2</span></div>
+          <div class="bar-row"><span class="name">Navegación</span><div class="bar-track"><div class="bar-fill" style="background:var(--amber)" data-w="25"></div></div><span class="cnt">1</span></div>
+          <div class="bar-row"><span class="name">Experiencia UX</span><div class="bar-track"><div class="bar-fill" style="background:var(--amber)" data-w="25"></div></div><span class="cnt">1</span></div>
+          <div class="bar-row"><span class="name">UI / Diseño</span><div class="bar-track"><div class="bar-fill" style="background:var(--green)" data-w="25"></div></div><span class="cnt">1</span></div>
+          <div class="bar-row"><span class="name">Contenido</span><div class="bar-track"><div class="bar-fill" style="background:var(--violet)" data-w="25"></div></div><span class="cnt">1</span></div>
+          <div class="bar-row"><span class="name">Errores / mensajes</span><div class="bar-track"><div class="bar-fill" style="background:var(--amber)" data-w="25"></div></div><span class="cnt">1</span></div>
+          <div class="bar-row"><span class="name">Responsive</span><div class="bar-track"><div class="bar-fill" style="background:var(--amber)" data-w="50"></div></div><span class="cnt">2</span></div>
+          <div class="bar-row"><span class="name">Rendimiento</span><div class="bar-track"><div class="bar-fill" style="background:var(--violet)" data-w="25"></div></div><span class="cnt">1</span></div>
+          <div class="bar-row"><span class="name">Accesibilidad</span><div class="bar-track"><div class="bar-fill" style="background:var(--green)" data-w="25"></div></div><span class="cnt">1</span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RECOMENDACIONES -->
+  <section class="slide" data-title="Recomendaciones">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">08 · Recomendaciones</span>
+      <h2 class="reveal d1">Plan de <span class="accent">mejora</span> sugerido</h2>
+      <div class="rec-list">
+        <div class="rec reveal d1"><div class="n">1</div><div><h4>Corrección de errores funcionales</h4><p>Priorizar la solución de los problemas que impiden o dificultan las actividades académicas.</p></div></div>
+        <div class="rec reveal d1"><div class="n">2</div><div><h4>Mejora de la navegación</h4><p>Revisar menús y ubicación de funciones para acceder a la información en pocos pasos.</p></div></div>
+        <div class="rec reveal d2"><div class="n">3</div><div><h4>Unificación de la interfaz</h4><p>Criterios visuales consistentes en botones, colores, iconos y tipografías.</p></div></div>
+        <div class="rec reveal d2"><div class="n">4</div><div><h4>Mejora de mensajes</h4><p>Mensajes claros que indiquen qué ocurrió y cómo solucionarlo.</p></div></div>
+        <div class="rec reveal d3"><div class="n">5</div><div><h4>Revisión del contenido</h4><p>Revisión ortográfica y de coherencia de todos los textos de la plataforma.</p></div></div>
+        <div class="rec reveal d3"><div class="n">6</div><div><h4>Adaptación a dispositivos móviles</h4><p>Corregir problemas de visualización en teléfonos y tablets; los estudiantes consultan desde el celular.</p></div></div>
+        <div class="rec reveal d4"><div class="n">7</div><div><h4>Priorización</h4><p>Atender primero los hallazgos de severidad alta y media; dejar bajos y observaciones para una etapa posterior.</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONCLUSIONES -->
+  <section class="slide" data-title="Conclusiones">
+    <div class="slide-inner">
+      <span class="eyebrow reveal">09 · Conclusiones</span>
+      <h2 class="reveal d1" style="margin-bottom:30px">Síntesis de la <span class="accent">evaluación</span></h2>
+      <div class="concl">
+        <p class="reveal d1"><b>Sin bloqueos críticos:</b> no se detectaron hallazgos de severidad alta; la plataforma es utilizable en su estado actual.</p>
+        <p class="reveal d2"><b>El foco: notificaciones:</b> la ausencia de alertas sobre actividades pendientes y vencimientos es el principal punto a mejorar.</p>
+        <p class="reveal d3"><b>Movilidad pendiente:</b> conviene mejorar la experiencia móvil y tablet, donde los estudiantes consultan sus cursos con mayor frecuencia.</p>
+      </div>
+      <div class="gallery reveal d3">
+        <div class="figure">
+          <img src="dasboard%20akumaja.png" alt="Dashboard de la plataforma Akumaja" loading="lazy">
+          <div class="cap">
+            <span class="fig-num">EVIDENCIA · DASHBOARD</span>
+            <p>Dashboard de la plataforma capturado durante la sesión de pruebas.</p>
+          </div>
+        </div>
+      </div>
+      <p class="foot reveal d4">Informe de Evaluación QA · Plataforma Académica Institucional Akumaja · Pruebas exploratorias desde la perspectiva del usuario estudiante.</p>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  const slidesWrap = document.getElementById('slides');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const dotsNav = document.getElementById('dots');
+  const progress = document.getElementById('progress');
+
+  slides.forEach((s, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.title = s.dataset.title;
+    d.addEventListener('click', () => goTo(i));
+    dotsNav.appendChild(d);
+  });
+  const dots = Array.from(dotsNav.children);
+
+  let current = 0;
+  function goTo(i){
+    current = Math.max(0, Math.min(slides.length - 1, i));
+    slides[current].scrollIntoView({behavior:'smooth', block:'start'});
+  }
+  document.getElementById('next').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('prev').addEventListener('click', () => goTo(current - 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); goTo(current + 1); }
+    if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); goTo(current - 1); }
+    if (e.key === 'Home') goTo(0);
+    if (e.key === 'End') goTo(slides.length - 1);
+  });
+
+  const revealObserver = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (en.isIntersecting) {
+        en.target.classList.add('in');
+        en.target.querySelectorAll('.reveal').forEach(el => el.classList.add('in'));
+        runCounters(en.target);
+        runBars(en.target);
+        const idx = slides.indexOf(en.target);
+        dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+        current = idx;
+      }
+    });
+  }, {threshold:.45});
+
+  slides.forEach(s => revealObserver.observe(s));
+
+  const innerObserver = new IntersectionObserver(entries => {
+    entries.forEach(en => { if (en.isIntersecting) en.target.classList.add('in'); });
+  }, {threshold:.15});
+  document.querySelectorAll('.reveal').forEach(el => innerObserver.observe(el));
+
+  slidesWrap.addEventListener('scroll', () => {
+    const max = slidesWrap.scrollHeight - slidesWrap.clientHeight;
+    progress.style.width = (max > 0 ? (slidesWrap.scrollTop / max) * 100 : 0) + '%';
+  });
+
+  function runCounters(scope){
+    scope.querySelectorAll('[data-count]').forEach(el => {
+      if (el.dataset.done) return;
+      el.dataset.done = true;
+      const target = +el.dataset.count;
+      const dur = 1100;
+      const start = performance.now();
+      const tick = now => {
+        const p = Math.min((now - start) / dur, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(target * eased);
+        if (p < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+
+  function runBars(scope){
+    scope.querySelectorAll('.bar-fill').forEach(b => {
+      if (b.dataset.done) return;
+      b.dataset.done = true;
+      setTimeout(() => { b.style.width = b.dataset.w + '%'; }, 200);
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,12 +1,13 @@
-// App.js - Navegación PRO con NativeWind y transiciones
+// App.js - Navegación PRO con transiciones suaves
 import React, { useState, useRef } from 'react';
-import { View, SafeAreaView, Animated, StatusBar } from 'react-native';
+import { View, SafeAreaView, Animated, StatusBar, Platform } from 'react-native';
 import WelcomeScreen from './src/screens/WelcomeScreen';
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import CreateHabitScreen from './src/screens/CreateHabitScreen';
 import ProgressScreen from './src/screens/ProgressScreen';
 import BottomNavigation from './src/components/BottomNavigation';
+import { colors } from './src/styles/theme';
 
 export default function App() {
   const [appState, setAppState] = useState('welcome'); // welcome | login | app
@@ -71,10 +72,10 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-50">
-      <StatusBar barStyle={appState === 'welcome' ? 'light-content' : 'dark-content'} />
-      <View className="flex-1">
-        <Animated.View className="flex-1" style={{ opacity: fadeAnim }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: appState === 'welcome' || appState === 'login' ? colors.background : colors.background }}>
+      <StatusBar barStyle={appState === 'welcome' ? 'light-content' : 'dark-content'} backgroundColor={appState === 'welcome' ? '#6366f1' : colors.background} />
+      <View style={{ flex: 1, paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+        <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
           {renderScreen()}
         </Animated.View>
 

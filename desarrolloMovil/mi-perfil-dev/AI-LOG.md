@@ -1,4 +1,4 @@
-# 🤖 Bitácora de Auditoría de IA (AI-LOG) - Semana 1
+# Bitácora de Auditoría de IA (AI-LOG) - Semana 1
 
 **Estudiante:** Juan Carlos Añez Ahumada  
 **Fecha:** 26/08/2026  
@@ -16,7 +16,7 @@
 
 ## 2. Peticiones Realizadas y Trabajo Colaborativo (Prompts)
 
-### 📌 Fase 1: Creación del Proyecto Base
+### Fase 1: Creación del Proyecto Base
 - **Petición del Estudiante:**  
   "Ayúdame a generar la estructura inicial del proyecto de Expo con el nombre `mi-perfil-dev` usando el template de TypeScript (`blank-typescript`)."
 - **Trabajo Conjunto:**  
@@ -25,7 +25,7 @@
 
 ---
 
-### 📌 Fase 2: Construcción de la Interfaz y Personalización de Diseño (`App.tsx`)
+### Fase 2: Construcción de la Interfaz y Personalización de Diseño (`App.tsx`)
 - **Petición del Estudiante:**  
   "Requiero la estructura base en `App.tsx` para mostrar mi foto (`avatar.jpeg`), mi nombre completo (Juan Carlos Añez Ahumada), mi carrera (*Ingeniería de Sistemas / Dev Móvil*), una biografía y mis 3 habilidades principales."
 - **Trabajo Conjunto:**  
@@ -37,7 +37,7 @@
 
 ---
 
-### 📌 Fase 3: Resolución de Entorno Web e Integración de Iconos Vectoriales
+###  Fase 3: Resolución de Entorno Web e Integración de Iconos Vectoriales
 - **Petición del Estudiante:**  
   "Se presentó el error `Unable to resolve react-native-web` al abrir en el navegador, y deseo cambiar los emojis por iconos vectoriales profesionales."
 - **Trabajo Conjunto:**  

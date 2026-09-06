@@ -1,10 +1,10 @@
-# 🎉 PROYECTO FOCUSUP - ENTREGA FINAL
+#  PROYECTO FOCUSUP - ENTREGA FINAL
 
-## ✅ ESTADO: COMPLETADO 100%
+##  ESTADO: COMPLETADO 100%
 
 ---
 
-## 📦 QUÉ SE ENTREGÓ
+##  QUÉ SE ENTREGÓ
 
 ### 1. Aplicación Funcional
 - ✅ App React Native con Expo
@@ -62,7 +62,7 @@ c:\Proyectos\desarrolloMovil\actividad/
 
 ---
 
-## 🎯 ARCHIVOS CLAVE PARA LA PRESENTACIÓN
+##   ARCHIVOS CLAVE PARA LA PRESENTACIÓN
 
 ### Para mostrar los componentes requeridos:
 
@@ -152,7 +152,7 @@ Línea 25: ScrollView envolviendo toda la pantalla
 
 ---
 
-## 🚀 CÓMO EMPEZAR EN 2 MINUTOS
+##  CÓMO EMPEZAR EN 2 MINUTOS
 
 ### Opción 1: Terminal Rápida
 ```bash
@@ -171,7 +171,7 @@ npm start
 
 ---
 
-## 📱 QUÉ VAS A VER
+##  QUÉ VAS A VER
 
 ### Pantalla 1: Home (Dashboard)
 ```

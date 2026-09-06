@@ -9,7 +9,7 @@ import { colors, spacing, borderRadius, shadows } from '../styles/theme';
 
 const FILTERS = ['Todos', 'Hoy', 'Completados', 'Pendientes'];
 
-const HomeScreen = ({ userName = 'Juan', onCreateHabitPress }) => {
+const HomeScreen = ({ userName = 'Juan', onCreateHabitPress, onLogout }) => {
   const [filter, setFilter] = useState('Todos');
   const initialLetter = userName ? userName.trim().charAt(0).toUpperCase() : 'U';
 
@@ -61,6 +61,11 @@ const HomeScreen = ({ userName = 'Juan', onCreateHabitPress }) => {
             <MaterialCommunityIcons name="bell-outline" size={18} color={colors.textSecondary} />
             <View style={{ position: 'absolute', top: 8, right: 10, width: 8, height: 8, borderRadius: 4, backgroundColor: colors.error, borderWidth: 1.5, borderColor: '#fff' }} />
           </Pressable>
+          {onLogout && (
+            <Pressable onPress={onLogout} hitSlop={8} style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: '#FEF2F2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#FCA5A5', ...shadows.xs }}>
+              <MaterialCommunityIcons name="logout" size={18} color="#EF4444" />
+            </Pressable>
+          )}
         </View>
       </View>
 

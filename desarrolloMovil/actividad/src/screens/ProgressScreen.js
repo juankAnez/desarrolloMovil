@@ -6,7 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ProgressBar from '../components/ProgressBar';
 import { colors, spacing, borderRadius, shadows, categoryConfig } from '../styles/theme';
 
-const ProgressScreen = () => {
+const ProgressScreen = ({ userName = 'Juan', onLogout }) => {
+  const initialLetter = userName ? userName.trim().charAt(0).toUpperCase() : 'U';
   const weeklyProgress = [
     { category: 'Estudio', percentage: 0.85 },
     { category: 'Ejercicio', percentage: 0.65 },
@@ -32,22 +33,24 @@ const ProgressScreen = () => {
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <View style={{ width: 64, height: 64, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: 'rgba(255,255,255,0.3)' }}>
-              <Text style={{ fontSize: 24, fontWeight: '900', color: '#fff' }}>J</Text>
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#fff' }}>{initialLetter}</Text>
               <View style={{ position: 'absolute', bottom: -4, right: -4, width: 22, height: 22, borderRadius: 11, backgroundColor: colors.success, justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#fff' }}>
                 <MaterialCommunityIcons name="check" size={12} color="#fff" />
               </View>
             </View>
             <View>
-              <Text style={{ fontSize: 20, fontWeight: '900', color: '#fff', letterSpacing: -0.4 }}>Juan Pérez</Text>
+              <Text style={{ fontSize: 20, fontWeight: '900', color: '#fff', letterSpacing: -0.4 }}>{userName}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, backgroundColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, alignSelf: 'flex-start', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
                 <MaterialCommunityIcons name="crown" size={12} color="#fde68a" />
                 <Text style={{ fontSize: 11, fontWeight: '800', color: '#fff', letterSpacing: 0.4 }}>NIVEL PRODUCTIVO • 1.240 XP</Text>
               </View>
             </View>
           </View>
-          <View style={{ width: 38, height: 38, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.18)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
-            <MaterialCommunityIcons name="cog-outline" size={18} color="#fff" />
-          </View>
+          {onLogout && (
+            <Pressable onPress={onLogout} hitSlop={10} style={({ pressed }) => ({ width: 42, height: 42, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.3)', opacity: pressed ? 0.7 : 1 })}>
+              <MaterialCommunityIcons name="logout" size={20} color="#fff" />
+            </Pressable>
+          )}
         </View>
 
         {/* Stats pills inside hero */}

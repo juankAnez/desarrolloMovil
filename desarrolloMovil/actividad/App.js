@@ -37,6 +37,13 @@ export default function App() {
     });
   };
 
+  const handleLogout = () => {
+    animateTransition(() => {
+      setAppState('login');
+      setActiveScreen('home');
+    });
+  };
+
   const renderScreen = () => {
     if (appState === 'welcome') {
       return <WelcomeScreen onGetStarted={() => handleNavigate('login')} />;
@@ -54,13 +61,13 @@ export default function App() {
     }
     switch (activeScreen) {
       case 'home':
-        return <HomeScreen userName={userName} onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
+        return <HomeScreen userName={userName} onLogout={handleLogout} onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
       case 'create':
         return <CreateHabitScreen onBackPress={() => animateTransition(() => setActiveScreen('home'))} />;
       case 'progress':
-        return <ProgressScreen />;
+        return <ProgressScreen userName={userName} onLogout={handleLogout} />;
       default:
-        return <HomeScreen userName={userName} onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
+        return <HomeScreen userName={userName} onLogout={handleLogout} onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
     }
   };
 

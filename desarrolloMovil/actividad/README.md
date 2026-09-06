@@ -1,77 +1,66 @@
-# FocusUp - App Comercial de Seguimiento de Hábitos y Productividad
+# FocusUp - Aplicación Móvil de Seguimiento de Hábitos y Productividad
 
 ![App Screenshot](./screenshot.png)
 
 ## 📌 Explicación del Diseño Replicado
 
-**FocusUp** es una maquetación móvil moderna desarrollada con **React Native**, **Expo** y **NativeWind (Tailwind CSS)**. Su diseño replica la experiencia visual y fluidez de aplicaciones comerciales como *Airbnb*, *Uber* o *Instagram*, organizando componentes nativos y tarjetas interactivas de seguimiento personal.
+**FocusUp** es una aplicación móvil nativa desarrollada con **React Native** y **Expo**. Su diseño replica la experiencia de usuario y elegancia visual de aplicaciones móviles comerciales como *Uber*, *Instagram* o *Airbnb*, organizando componentes Core nativos con animaciones fluidas, gradientes y tarjetas de seguimiento personal.
 
 ---
 
 ## 📝 Requisitos Técnicos Cumplidos
 
-### 1. Contenedores Principales
-- **`<SafeAreaView>`**: Garantiza la correcta adaptación del área segura en dispositivos iOS y Android.
-- **`<ScrollView>`**: Permite el desplazamiento continuo y fluido en toda la interfaz sin desbordamientos.
+### 1. Contenedor Principal
+- **`<SafeAreaView>`**: Garantiza la perfecta adaptación en dispositivos móviles iOS y Android.
+- **`<ScrollView>`**: Permite desplazamiento continuo y fluido en todas las vistas.
 
 ### 2. Componentes Core Obligatorios
 - **`<TextInput>` Funcional**: 
-  - Barra de búsqueda interactiva en `HomeScreen.js` para filtrar hábitos en tiempo real por palabra clave.
-  - Campos de entrada de datos en `LoginScreen.js` y `CreateHabitScreen.js` (Nombre completo, Correo electrónico y Contraseña).
-- **`<Image>` (Remotas y Locales)**:
-  - **Imagen 1 (Avatar del Usuario)**: Carga remota con URL en `HomeScreen.js` (`source={{ uri: 'https://images.unsplash.com/photo-1534528741775...' }}`).
-  - **Imagen 2 (Banner Hero de Fondo)**: Carga remota de alta resolución en el dashboard principal para el fondo de la tarjeta de progreso.
-- **`<Pressable>` con Respuesta de Estado**:
-  - Botones de acción con clases de utilidad como `active:opacity-70`, `active:scale-95` y `active:opacity-90` para dar retroalimentación visual al toque en:
-    1. Botón de búsqueda / notificación.
-    2. Botón de cerrar sesión (`logout`).
-    3. Botón flotante CTA *"Crear nuevo hábito"*.
-    4. Botones de filtrado de categorías (*Todos, Hoy, Completados, Pendientes*).
-
-### 3. Estilos NativeWind (Tailwind CSS)
-- **Sin utilizar `StyleSheet.create()`**: Todos los estilos están definidos 100% mediante clases de utilidad de Tailwind CSS (`className="..."`) para bordes, sombras, degradados, espaciados y respuesta de opacidad.
+  - Campos de entrada de datos en la pantalla de inicio de sesión (`LoginScreen.js`) para capturar el nombre del usuario, correo electrónico y contraseña.
+  - Campos de texto en el formulario de creación de hábitos (`CreateHabitScreen.js`).
+- **`<Image>`**:
+  - Uso de imágenes y avatares de perfil con estilos nativos.
+- **`<Pressable>` con Respuesta al Toque**:
+  - Botones táctiles con respuestas dinámicas y opacidad en la navegación de pestañas inferiores, botones de acción del header, retorno `[←]`, botón de cerrar sesión (`logout`) y botones CTA principales.
 
 ---
 
 ## 🛠️ Cómo Ejecutar el Proyecto
 
-1. **Instalar dependencias (si es necesario):**
+1. **Instalar dependencias:**
    ```bash
    npm install
    ```
 
-2. **Iniciar el servidor de Expo:**
+2. **Iniciar la aplicación en Expo:**
    ```bash
    npm start
    ```
 
-3. **Abrir en el navegador o emulador:**
-   - Presiona `w` para la versión web.
-   - Presiona `a` para emulador de Android.
-   - Presiona `i` para emulador de iOS.
-
 ---
 
-## 📁 Estructura del Código
+## 📁 Estructura del Proyecto
 
 ```
 actividad/
-├── App.js                     # Contenedor principal y navegación (SafeAreaView + Animated)
+├── App.js                     # Componente principal de navegación (SafeAreaView + Animated)
 ├── screenshot.png             # Captura de pantalla de la aplicación
-├── tailwind.config.js         # Configuración de NativeWind / Tailwind CSS
+├── AI-LOG.md                  # Bitácora de Auditoría de IA
 ├── src/
 │   ├── screens/
-│   │   ├── HomeScreen.js      # Dashboard principal (TextInput, Images remotas, Pressable)
-│   │   ├── LoginScreen.js     # Pantalla de Login e ingreso de usuario
-│   │   ├── WelcomeScreen.js   # Onboarding en 3 pasos
-│   │   ├── CreateHabitScreen.js # Formulario de creación
+│   │   ├── HomeScreen.js      # Vista 1: Dashboard de hábitos
+│   │   ├── LoginScreen.js     # Vista 2: Inicio de sesión e ingreso de nombre
+│   │   ├── WelcomeScreen.js   # Vista 3: Onboarding interactivo en 3 pasos
+│   │   ├── CreateHabitScreen.js # Formulario de creación de hábitos
 │   │   └── ProgressScreen.js  # Estadísticas del usuario
 │   ├── components/
-│   │   ├── ProgressBar.js     # Barra de progreso
-│   │   ├── HabitCard.js       # Tarjetas interactivas
+│   │   ├── ProgressBar.js     # Barra de progreso reutilizable
+│   │   ├── HabitCard.js       # Tarjetas interactivas de hábito
 │   │   └── BottomNavigation.js# Navegación inferior
+│   └── styles/
+│       └── theme.js           # Tema nativo, colores y sombras
 ```
 
 ---
 
-**Desarrollado con React Native, Expo & NativeWind.**
+**Desarrollado con React Native & Expo.**

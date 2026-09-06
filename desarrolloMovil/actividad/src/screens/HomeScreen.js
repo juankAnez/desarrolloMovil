@@ -9,8 +9,9 @@ import { colors, spacing, borderRadius, shadows } from '../styles/theme';
 
 const FILTERS = ['Todos', 'Hoy', 'Completados', 'Pendientes'];
 
-const HomeScreen = ({ onCreateHabitPress }) => {
+const HomeScreen = ({ userName = 'Juan', onCreateHabitPress }) => {
   const [filter, setFilter] = useState('Todos');
+  const initialLetter = userName ? userName.trim().charAt(0).toUpperCase() : 'U';
 
   const habitsList = [
     { id: 1, icon: 'book-open-page-variant-outline', name: 'Estudiar React Native', goal: '1 hora', category: 'Estudio', progress: null, isCompleted: true, streak: 5 },
@@ -38,11 +39,11 @@ const HomeScreen = ({ onCreateHabitPress }) => {
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
           <View style={{ width: 46, height: 46, borderRadius: 14, backgroundColor: colors.primaryMuted, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.primary + '15' }}>
-            <Text style={{ fontSize: 18, fontWeight: '900', color: colors.primary }}>J</Text>
+            <Text style={{ fontSize: 18, fontWeight: '900', color: colors.primary }}>{initialLetter}</Text>
           </View>
           <View>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-              <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text, letterSpacing: -0.3 }}>Hola, Juan</Text>
+              <Text style={{ fontSize: 15, fontWeight: '800', color: colors.text, letterSpacing: -0.3 }}>Hola, {userName}</Text>
               <MaterialCommunityIcons name="hand-wave" size={16} color={colors.warning} />
               <View style={{ backgroundColor: colors.successLight, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999, marginLeft: 4 }}>
                 <Text style={{ fontSize: 9, fontWeight: '800', color: colors.success, letterSpacing: 0.5 }}>PRO</Text>

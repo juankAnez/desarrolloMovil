@@ -5,7 +5,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, borderRadius, shadows } from '../styles/theme';
 
-const LoginScreen = ({ onLoginPress }) => {
+const LoginScreen = ({ onLoginPress, onBackPress }) => {
+  const [name, setName] = useState('Juan');
   const [email, setEmail] = useState('juan@focusup.app');
   const [password, setPassword] = useState('123456');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,7 +21,7 @@ const LoginScreen = ({ onLoginPress }) => {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
-      onLoginPress();
+      onLoginPress(name.trim() || 'Juan');
     }, 1100);
   };
 
@@ -33,46 +34,87 @@ const LoginScreen = ({ onLoginPress }) => {
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={{
-            height: 180,
+            height: 210,
             borderBottomLeftRadius: borderRadius['2xl'],
             borderBottomRightRadius: borderRadius['2xl'],
-            paddingTop: spacing.xl + 10,
+            paddingTop: spacing.xl,
             paddingHorizontal: spacing.lg,
           }}
         >
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View style={{ width: 36, height: 36, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(255,255,255,0.25)' }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Pressable
+              onPress={onBackPress}
+              hitSlop={10}
+              style={({ pressed }) => ({
+                width: 36,
+                height: 36,
+                borderRadius: 12,
+                backgroundColor: 'rgba(255,255,255,0.2)',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.25)',
+                opacity: pressed ? 0.7 : 1,
+              })}
+            >
               <MaterialCommunityIcons name="arrow-left" size={18} color="#fff" />
-            </View>
-            <View style={{ backgroundColor: 'rgba(255,255,255,0.18)', paddingHorizontal: 10, paddingVertical: 6, borderRadius: 999, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)' }}>
-              <Text style={{ color: '#fff', fontSize: 11, fontWeight: '700' }}>DEMO • SIN BACKEND</Text>
-            </View>
+            </Pressable>
           </View>
-          <View style={{ marginTop: spacing.lg }}>
+          <View style={{ marginTop: spacing.md }}>
             <Text style={{ color: 'rgba(255,255,255,0.85)', fontSize: 12, fontWeight: '700', letterSpacing: 1 }}>BIENVENIDO DE NUEVO</Text>
             <Text style={{ color: '#fff', fontSize: 28, fontWeight: '900', letterSpacing: -0.8, marginTop: 4 }}>Inicia sesión</Text>
           </View>
         </LinearGradient>
 
         {/* Card flotante */}
-        <View style={{ marginTop: -36, paddingHorizontal: spacing.lg }}>
+        <View style={{ marginTop: -28, paddingHorizontal: spacing.lg }}>
           <View style={{ backgroundColor: colors.backgroundLight, borderRadius: borderRadius.xl, padding: spacing.lg, ...shadows.lg, borderWidth: 1, borderColor: colors.borderLight }}>
             {/* Avatar pill */}
-            <View style={{ alignItems: 'center', marginTop: -42, marginBottom: spacing.md }}>
-              <LinearGradient colors={['#6366f1', '#8b5cf6']} style={{ width: 72, height: 72, borderRadius: 22, justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#fff', ...shadows.md }}>
+            <View style={{ alignItems: 'center', marginTop: -38, marginBottom: spacing.xs }}>
+              <LinearGradient colors={['#6366f1', '#8b5cf6']} style={{ width: 68, height: 68, borderRadius: 22, justifyContent: 'center', alignItems: 'center', borderWidth: 4, borderColor: '#fff', ...shadows.md }}>
                 <MaterialCommunityIcons name="account-circle" size={36} color="#fff" />
               </LinearGradient>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 10, backgroundColor: colors.primaryMuted, paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 }}>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: colors.success }} />
-                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary, letterSpacing: 0.4 }}>MODO DEMO ACTIVO</Text>
+            </View>
+
+            <Text style={{ fontSize: 18, fontWeight: '800', color: colors.text, textAlign: 'center', letterSpacing: -0.3, marginTop: 6 }}>¡Bienvenido a FocusUp!</Text>
+            <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 18 }}>Ingresa tu nombre y datos de acceso para continuar.</Text>
+
+            {/* Name */}
+            <View style={{ marginTop: spacing.lg, marginBottom: 0 }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.text, letterSpacing: 0.6, marginBottom: 8 }}>NOMBRE COMPLETO</Text>
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  borderWidth: 1.5,
+                  borderColor: focused === 'name' ? colors.primary : colors.border,
+                  borderRadius: borderRadius.md,
+                  paddingHorizontal: spacing.md,
+                  backgroundColor: focused === 'name' ? colors.primaryMuted + '60' : colors.background,
+                  height: 52,
+                }}
+              >
+                <MaterialCommunityIcons name="account-outline" size={18} color={focused === 'name' ? colors.primary : colors.textTertiary} style={{ marginRight: 10 }} />
+                <TextInput
+                  placeholder="Tu nombre (ej: Juan)"
+                  placeholderTextColor={colors.textTertiary}
+                  value={name}
+                  onChangeText={setName}
+                  autoCapitalize="words"
+                  onFocus={() => setFocused('name')}
+                  onBlur={() => setFocused(null)}
+                  style={{ flex: 1, fontSize: 14, color: colors.text, fontWeight: '500' }}
+                />
+                {name.length > 0 && (
+                  <Pressable onPress={() => setName('')}>
+                    <MaterialCommunityIcons name="close-circle" size={18} color={colors.textTertiary} />
+                  </Pressable>
+                )}
               </View>
             </View>
 
-            <Text style={{ fontSize: 16, fontWeight: '800', color: colors.text, textAlign: 'center', letterSpacing: -0.3 }}>Acceso rápido</Text>
-            <Text style={{ fontSize: 13, color: colors.textSecondary, textAlign: 'center', marginTop: 4, lineHeight: 18 }}>Usa cualquier correo y contraseña para entrar. Sin validación real.</Text>
-
             {/* Email */}
-            <View style={{ marginTop: spacing.lg, marginBottom: spacing.md }}>
+            <View style={{ marginTop: spacing.md, marginBottom: spacing.md }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
                 <Text style={{ fontSize: 11, fontWeight: '800', color: colors.text, letterSpacing: 0.6 }}>CORREO ELECTRÓNICO</Text>
                 {email.length > 0 && (

@@ -12,6 +12,7 @@ import { colors } from './src/styles/theme';
 export default function App() {
   const [appState, setAppState] = useState('welcome'); // welcome | login | app
   const [activeScreen, setActiveScreen] = useState('home');
+  const [userName, setUserName] = useState('Juan');
   const fadeAnim = useRef(new Animated.Value(1)).current;
 
   const animateTransition = (callback) => {
@@ -41,17 +42,25 @@ export default function App() {
       return <WelcomeScreen onGetStarted={() => handleNavigate('login')} />;
     }
     if (appState === 'login') {
-      return <LoginScreen onLoginPress={() => handleNavigate('app')} />;
+      return (
+        <LoginScreen
+          onLoginPress={(enteredName) => {
+            if (enteredName) setUserName(enteredName);
+            handleNavigate('app');
+          }}
+          onBackPress={() => handleNavigate('welcome')}
+        />
+      );
     }
     switch (activeScreen) {
       case 'home':
-        return <HomeScreen onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
+        return <HomeScreen userName={userName} onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
       case 'create':
-        return <CreateHabitScreen />;
+        return <CreateHabitScreen onBackPress={() => animateTransition(() => setActiveScreen('home'))} />;
       case 'progress':
         return <ProgressScreen />;
       default:
-        return <HomeScreen onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
+        return <HomeScreen userName={userName} onCreateHabitPress={() => animateTransition(() => setActiveScreen('create'))} />;
     }
   };
 

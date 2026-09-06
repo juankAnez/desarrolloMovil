@@ -18,7 +18,7 @@ const ICONS = [
 
 const COLORS = ['#6366f1', '#06b6d4', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6'];
 
-const CreateHabitScreen = () => {
+const CreateHabitScreen = ({ onBackPress }) => {
   const [habitName, setHabitName] = useState('');
   const [description, setDescription] = useState('');
   const [dailyGoal, setDailyGoal] = useState('');
@@ -44,10 +44,31 @@ const CreateHabitScreen = () => {
       {/* Header */}
       <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View>
-            <Text style={{ fontSize: 11, fontWeight: '800', color: colors.primary, letterSpacing: 1 }}>NUEVO HÁBITO</Text>
-            <Text style={{ fontSize: 26, fontWeight: '900', color: colors.text, letterSpacing: -0.7, marginTop: 2 }}>Crear hábito</Text>
-            <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>Diseña tu próximo hábito atómico</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            {onBackPress && (
+              <Pressable
+                onPress={onBackPress}
+                hitSlop={10}
+                style={({ pressed }) => ({
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  backgroundColor: colors.backgroundLight,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  borderWidth: 1,
+                  borderColor: colors.borderLight,
+                  opacity: pressed ? 0.7 : 1,
+                })}
+              >
+                <MaterialCommunityIcons name="arrow-left" size={20} color={colors.text} />
+              </Pressable>
+            )}
+            <View>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: colors.primary, letterSpacing: 1 }}>NUEVO HÁBITO</Text>
+              <Text style={{ fontSize: 26, fontWeight: '900', color: colors.text, letterSpacing: -0.7, marginTop: 2 }}>Crear hábito</Text>
+              <Text style={{ fontSize: 13, color: colors.textSecondary, marginTop: 4 }}>Diseña tu próximo hábito atómico</Text>
+            </View>
           </View>
           <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: colors.primaryMuted, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: colors.primary + '15' }}>
             <MaterialCommunityIcons name="sparkles" size={20} color={colors.primary} />

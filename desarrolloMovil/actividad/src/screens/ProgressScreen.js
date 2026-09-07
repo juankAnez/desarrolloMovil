@@ -1,6 +1,6 @@
 // ProgressScreen PRO - Dashboard analítico premium
 import React from 'react';
-import { View, Text, ScrollView } from 'react-native';
+import { View, Text, ScrollView, Pressable } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import ProgressBar from '../components/ProgressBar';

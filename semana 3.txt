@@ -1,0 +1,283 @@
+SEM 3: Arquitectura de Navegación con Expo Router
+1. TEORÍA DETALLADA Y ARQUITECTURA
+Paradigma File-based Routing
+
+A diferencia de la navegación tradicional con React Navigation (donde declaras manualmente un contenedor <NavigationContainer> y registras pantalla por pantalla en un objeto JS), Expo Router utiliza la estructura del sistema de archivos dentro de la carpeta app/.
+
+    Cada archivo .tsx dentro de app/ se convierte automáticamente en una ruta URL/pantalla.
+
+    La jerarquía de carpetas define las rutas anidadas.
+
+    Los archivos especiales (_layout.tsx) gestionan los navegadores que envuelven a esas rutas.
+
+Archivos Especiales de Expo Router
+
+    app/index.tsx: Es la ruta raíz (/). Representa la primera pantalla que se carga.
+
+    app/_layout.tsx: Archivo de diseño global o de sección. Define la estrategia de navegación (Stack, Tabs, Drawer) y provee contexto/estilos a las pantallas hijas.
+
+    app/+not-found.tsx: Pantalla de respaldo para rutas inexistentes (Error 404).
+
+Patrones de Navegación Principales
+
+Patrón,Uso Principal,Componente Expo Router
+    Stack,Navegación jerárquica (Adelante/Atrás) con animaciones nativas.,<Stack/>
+    Tabs,Navegación entre secciones principales mediante una barra inferior.,<Tabs/>
+    Drawer,Menú lateral deslizable para accesos secundarios o configuración.,<Drawer/> 
+
+Rutas Dinámicas y Paso de Parámetros
+
+Para crear pantallas que reciban parámetros (como la vista de detalle de un elemento):
+
+    Crear la ruta dinámicamente: Nombra el archivo entre corchetes, por ejemplo app/student/[id].tsx.
+
+    Enviar parámetros (Navegación):
+    TypeScript
+
+    import { Link, useRouter } from 'expo-router';
+
+    // Opción Declarativa (Componente Link)
+    <Link href="/student/A00123456">Ver Estudiante</Link>
+
+    // Opción Programática (Hook useRouter)
+    const router = useRouter();
+    router.push({ pathname: '/student/[id]', params: { id: 'A00123456' } });
+
+    Recibir parámetros: Usamos el hook useLocalSearchParams.
+    TypeScript
+
+    import { useLocalSearchParams } from 'expo-router';
+
+    export default function StudentDetail() {
+      const { id } = useLocalSearchParams<{ id: string }>();
+      return <Text>Expediente del estudiante: {id}</Text>;
+    }
+
+Arquitectura Recomendada para el Proyecto (Feature-First)
+
+Para evitar saturar la carpeta app/ con lógica de negocio, utiliza una arquitectura donde app/ 
+sea exclusivamente para la definición de rutas, y delega componentes y lógica a una carpeta externa src/.
+
+├── app/                      # EXCLUSIVO PARA RUTAS (File-based Routing)
+│   ├── (auth)/               # Grupo de rutas sin afectar la URL
+│   │   ├── login.tsx
+│   │   └── register.tsx
+│   ├── (tabs)/               # Grupo para la navegación por pestañas
+│   │   ├── _layout.tsx       # Define el Tabs Navigator
+│   │   ├── index.tsx         # Tab 1: Inicio
+│   │   └── routes.tsx        # Tab 2: Rutas
+│   ├── student/
+│   │   └── [id].tsx          # Ruta dinámica: /student/123
+│   ├── modal.tsx             # Pantalla con presentación Modal
+│   ├── _layout.tsx           # Layout Root (Stack Principal)
+│   └── +not-found.tsx        # Manejo de 404
+│
+├── src/                      # CÓDIGO FUENTE DE LA APLICACIÓN
+│   ├── components/           # Componentes UI reutilizables (Botones, Cards)
+│   ├── features/             # Módulos por funcionalidad
+│   │   ├── auth/             # Componentes/Hooks exclusivos de Autenticación
+│   │   └── routes/           # Componentes/Hooks exclusivos de Rutas
+│   └── services/             # Consumo de API / Supabase / Firebase
+
+
+Nota: (tabs) o (auth) son Grupos de Rutas (Route Groups). Sirven para organizar el proyecto y aplicar layouts específicos sin agregar segmentos extra a la URL.
+
+2. EJERCICIO EN VIVO (DURANTE LA CLASE)
+Construiremos el cascarón de RouteGo con pestañas inferiores, una ruta dinámica y una pantalla Modal.
+
+Paso 1: Creación e Inicialización del Proyecto
+Abre tu terminal y ejecuta los siguientes comandos para crear un proyecto con Expo Router y NativeWind configurados:
+
+- npx create-expo-app@latest routego-app --template default
+- npx expo install expo-router react-native-safe-area-context react-native-screens expo-linking expo-constants expo-status-bar
+
+¿Qué hace este paso?
+Crea la estructura base del proyecto, genera la carpeta app/ necesaria para el File-based Routing e instala los módulos nativos para gestionar pantallas y áreas seguras en iOS y Android.
+
+Paso 2: Configuración de la Estructura de Carpetas
+Asegúrate de que la carpeta app/ dentro de tu proyecto tenga la siguiente estructura. Elimina cualquier archivo de ejemplo que traiga la plantilla e iguales esta organización:
+
+routego-app/
+└── app/
+    ├── (tabs)/
+    │   ├── _layout.tsx
+    │   ├── index.tsx
+    │   └── routes.tsx
+    ├── student/
+    │   └── [id].tsx
+    ├── _layout.tsx
+    ├── modal.tsx
+    └── +not-found.tsx
+
+Paso 3: Código de las Pantallas (Paso a Paso)
+1. Layout Raíz (app/_layout.tsx)
+Este archivo envuelve a toda la aplicación. Aquí definimos que la navegación principal es un Stack y registramos el grupo de pestañas, la ruta dinámica y la ventana modal.    
+import { Stack } from 'expo-router';
+
+export default function RootLayout() {
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      {/* 1. Grupo de Pestañas Inferiores */}
+      <Stack.Screen name="(tabs)" />
+      
+      {/* 2. Ruta Dinámica con cabecera nativa activa */}
+      <Stack.Screen 
+        name="student/[id]" 
+        options={{ 
+          headerShown: true, 
+          title: "Detalle de Estudiante",
+          headerTintColor: "#000666" 
+        }} 
+      />
+
+      {/* 3. Pantalla lanzada como Ventana Modal */}
+      <Stack.Screen 
+        name="modal" 
+        options={{ 
+          presentation: 'modal', 
+          headerShown: true, 
+          title: 'Información de Servicio' 
+        }} 
+      />
+    </Stack>
+  );
+}
+
+2. Layout de Pestañas (app/(tabs)/_layout.tsx)
+Define la barra de navegación inferior (Bottom Bar) para la sección principal de la app.
+import { Tabs } from 'expo-router';
+import { Text } from 'react-native';
+
+export default function TabsLayout() {
+  return (
+    <Tabs screenOptions={{ tabBarActiveTintColor: '#000666', headerShown: false }}>
+      {/* Pestaña 1: Inicio */}
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Inicio',
+          tabBarIcon: () => <Text>🏠</Text>,
+        }}
+      />
+      {/* Pestaña 2: Rutas de Shuttles */}
+      <Tabs.Screen
+        name="routes"
+        options={{
+          title: 'Rutas',
+          tabBarIcon: () => <Text>🚌</Text>,
+        }}
+      />
+    </Tabs>
+  );
+}
+
+3. Pantalla de Inicio (app/(tabs)/index.tsx)
+Es la pantalla de bienvenida dentro de las pestañas (/). Muestra botones para probar la navegación declarativa (Link) y programática (useRouter).
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Link, useRouter } from 'expo-router';
+
+export default function HomeScreen() {
+  const router = useRouter();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>RouteGo - Dashboard</Text>
+      <Text style={styles.subtitle}>Bienvenido al sistema de transporte</Text>
+      
+      {/* Navegación a Modal usando el componente Link */}
+      <Link href="/modal" asChild>
+        <Pressable style={styles.btnWarning}>
+          <Text style={styles.btnText}>Ver Estado de Shuttles (Modal)</Text>
+        </Pressable>
+      </Link>
+
+      {/* Navegación programática pasando un parámetro ID */}
+      <Pressable 
+        style={styles.btnPrimary}
+        onPress={() => router.push('/student/ST-202688')}
+      >
+        <Text style={styles.btnText}>Ver Perfil Estudiante ST-202688</Text>
+      </Pressable>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F8FAFC', padding: 24 },
+  title: { fontSize: 24, fontWeight: 'bold', color: '#000666', marginBottom: 4 },
+  subtitle: { fontSize: 14, color: '#64748B', marginBottom: 24 },
+  btnWarning: { backgroundColor: '#F59E0B', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12, marginBottom: 12 },
+  btnPrimary: { backgroundColor: '#000666', paddingHorizontal: 16, paddingVertical: 12, borderRadius: 12 },
+  btnText: { color: '#FFFFFF', fontWeight: 'bold', fontSize: 14 }
+});
+
+4. Segunda Pestaña: Rutas (app/(tabs)/routes.tsx)
+Representa la pestaña secundaria para la consulta de paradas de autobús.
+import { View, Text, StyleSheet } from 'react-native';
+
+export default function RoutesScreen() {
+  return (
+    <View style={styles.container}>
+      <Text style={styles.title}>Rutas Disponibles 🚌</Text>
+      <Text style={styles.text}>1. Ruta Norte - Campus Principal</Text>
+      <Text style={styles.text}>2. Ruta Sur - Facultad de Medicina</Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF' },
+  title: { fontSize: 20, fontWeight: 'bold', color: '#000666', marginBottom: 12 },
+  text: { fontSize: 14, color: '#334155', marginVertical: 4 }
+});
+
+5. Ruta Dinámica (app/student/[id].tsx)
+Recibe el parámetro enviado desde la URL o desde router.push() usando el hook useLocalSearchParams.
+import { View, Text, StyleSheet } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
+
+export default function StudentDetailScreen() {
+  // Captura el parámetro [id] desde la URL de la ruta
+  const { id } = useLocalSearchParams<{ id: string }>();
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.label}>ID de Estudiante Detectado:</Text>
+      <Text style={styles.idText}>{id}</Text>
+      <Text style={styles.info}>
+        Esta pantalla leyó el parámetro dinámico desde el archivo [id].tsx.
+      </Text>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 24 },
+  label: { fontSize: 14, color: '#64748B' },
+  idText: { fontSize: 32, fontWeight: '900', color: '#000666', marginVertical: 8 },
+  info: { fontSize: 14, color: '#334155', textAlign: 'center' }
+});
+
+6. Pantalla Modal (app/modal.tsx)
+Aparece flotante desde la parte inferior al ser invocada debido a la propiedad presentation: 'modal' configurada en _layout.tsx.
+
+3. TALLER PARA LA CASA (ENTREGABLE SEMANAL)
+Instrucciones para el Estudiante:
+
+    Paso 1 (Antes): Diseña en lápiz y papel o en Figma el wireframe del mapa de navegación de tu proyecto personal. Identifica cuáles pantallas irán dentro de Tabs y cuáles serán Stack/Modales.
+
+    Paso 2 (Desarrollo): Recrea la arquitectura dentro de tu repositorio Expo.
+
+        Crea al menos 3 pantallas conectadas.
+
+        Debe combinar una estructura de Tabs (mínimo 2 pestañas) y un Stack para ver detalles o un modal.
+
+        Incluye al menos una ruta dinámica que reciba un parámetro URL (por ejemplo: [id].tsx) y muestre dicho parámetro en pantalla.
+
+    Paso 3 (Análisis con IA - Después):
+
+        Copia la estructura de tu carpeta app/ y pídele a ChatGPT/Gemini:
+
+            "Actúa como un Arquitecto Senior de React Native. Analiza la estructura de mi proyecto en Expo Router [pega tu estructura] y propón una arquitectura alternativa optimizando la separación de conceptos (Feature-first). Explica las ventajas y desventajas."
+
+        Redacta un documento corto o archivo ARCHITECTURE.md en la raíz de tu proyecto comparando tu estructura actual con la sugerida por la IA.

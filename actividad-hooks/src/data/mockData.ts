@@ -1,0 +1,177 @@
+import { Project, Task, UserProfile } from '../types';
+
+export const INITIAL_USER: UserProfile = {
+  id: 'usr-juan-anez',
+  name: 'Juan Carlos Áñez',
+  role: 'Lead Full-Stack Developer & Architect',
+  email: 'juank.anez@taskflow.dev',
+  department: 'Ingeniería & Producto',
+  location: 'Riohacha, La Guajira, Colombia',
+  avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+  bio: 'Especialista en desarrollo web moderno y arquitecturas reactivas con React, TypeScript y arquitecturas SaaS.',
+  joinDate: 'Enero 2024',
+};
+
+export const INITIAL_PROJECTS: Project[] = [
+  {
+    id: 'proj-1',
+    name: 'Plataforma Educativa',
+    description: 'Sistema LMS con analíticas de aprendizaje y gestión de cursos en tiempo real.',
+    category: 'EdTech & Cloud',
+    color: '#3B82F6', // Blue
+    dueDate: '2026-11-15',
+    lead: 'Juan Carlos Áñez',
+  },
+  {
+    id: 'proj-2',
+    name: 'App de Servicios',
+    description: 'Aplicación on-demand para solicitud de servicios urbanos y logística sostenible.',
+    category: 'Mobile & IoT',
+    color: '#10B981', // Emerald
+    dueDate: '2026-10-30',
+    lead: 'Mariana Rosado',
+  },
+  {
+    id: 'proj-3',
+    name: 'Sistema de Gestión',
+    description: 'Módulo ERP para control financiero, facturación electrónica e inventarios.',
+    category: 'Enterprise SaaS',
+    color: '#8B5CF6', // Purple
+    dueDate: '2026-12-10',
+    lead: 'Carlos Redondo',
+  },
+  {
+    id: 'proj-4',
+    name: 'Portal Web Corporativo',
+    description: 'Rediseño del portal institucional con optimización SEO y accesibilidad WCAG 2.1.',
+    category: 'Frontend & UX',
+    color: '#F59E0B', // Amber
+    dueDate: '2026-10-15',
+    lead: 'Andrés Iguarán',
+  },
+];
+
+export const INITIAL_TASKS: Task[] = [
+  {
+    id: 'TASK-101',
+    title: 'Configurar arquitectura de React Hooks',
+    description: 'Implementar el contexto global con useReducer o useContext y estructurar los custom hooks reutilizables.',
+    project: 'Plataforma Educativa',
+    priority: 'HIGH',
+    status: 'COMPLETED',
+    assignedTo: {
+      name: 'Juan Carlos Áñez',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      role: 'Lead Developer',
+    },
+    dueDate: '2026-09-25',
+    createdAt: '2026-09-18',
+    isPinned: true,
+  },
+  {
+    id: 'TASK-102',
+    title: 'Integrar autenticación JWT y refresh tokens',
+    description: 'Asegurar las rutas de API mediante cookies httpOnly y validar expiración de sesiones en el cliente.',
+    project: 'Sistema de Gestión',
+    priority: 'HIGH',
+    status: 'IN_PROGRESS',
+    assignedTo: {
+      name: 'Juan Carlos Áñez',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      role: 'Lead Developer',
+    },
+    dueDate: '2026-09-28',
+    createdAt: '2026-09-19',
+    isPinned: true,
+  },
+  {
+    id: 'TASK-103',
+    title: 'Diseñar interfaz responsive de dashboard SaaS',
+    description: 'Crear tarjetas estadísticas con microinteracciones, transiciones fluidas y soporte para modo oscuro.',
+    project: 'Plataforma Educativa',
+    priority: 'MEDIUM',
+    status: 'COMPLETED',
+    assignedTo: {
+      name: 'Mariana Rosado',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      role: 'Product Designer',
+    },
+    dueDate: '2026-09-22',
+    createdAt: '2026-09-17',
+  },
+  {
+    id: 'TASK-104',
+    title: 'Optimizar renderizado con useMemo y useCallback',
+    description: 'Evitar re-renderizados innecesarios en la lista de tareas y memorizar cálculos de estadísticas complejas.',
+    project: 'App de Servicios',
+    priority: 'HIGH',
+    status: 'IN_PROGRESS',
+    assignedTo: {
+      name: 'Juan Carlos Áñez',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      role: 'Lead Developer',
+    },
+    dueDate: '2026-09-30',
+    createdAt: '2026-09-20',
+  },
+  {
+    id: 'TASK-105',
+    title: 'Migrar componentes a Tailwind CSS v4',
+    description: 'Actualizar variables CSS, clases utilitarias y asegurar consistencia visual entre temas light y dark.',
+    project: 'Portal Web Corporativo',
+    priority: 'LOW',
+    status: 'TODO',
+    assignedTo: {
+      name: 'Andrés Iguarán',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+      role: 'Frontend Dev',
+    },
+    dueDate: '2026-10-05',
+    createdAt: '2026-09-21',
+  },
+  {
+    id: 'TASK-106',
+    title: 'Crear modal de creación rápida con auto-focus',
+    description: 'Utilizar useRef para enfocar automáticamente el campo de título al abrir la ventana modal.',
+    project: 'Plataforma Educativa',
+    priority: 'MEDIUM',
+    status: 'COMPLETED',
+    assignedTo: {
+      name: 'Juan Carlos Áñez',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      role: 'Lead Developer',
+    },
+    dueDate: '2026-09-24',
+    createdAt: '2026-09-18',
+  },
+  {
+    id: 'TASK-107',
+    title: 'Implementar exportación de reportes en PDF y CSV',
+    description: 'Generar resúmenes tabulares descargables con métricas de productividad de cada proyecto.',
+    project: 'Sistema de Gestión',
+    priority: 'MEDIUM',
+    status: 'TODO',
+    assignedTo: {
+      name: 'Carlos Redondo',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      role: 'Backend Dev',
+    },
+    dueDate: '2026-10-12',
+    createdAt: '2026-09-21',
+  },
+  {
+    id: 'TASK-108',
+    title: 'Auditoría de seguridad y validación de formularios',
+    description: 'Sanitizar inputs de usuario y prevenir inyecciones XSS en descripciones y títulos de tareas.',
+    project: 'App de Servicios',
+    priority: 'HIGH',
+    status: 'TODO',
+    assignedTo: {
+      name: 'Mariana Rosado',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      role: 'Product Designer',
+    },
+    dueDate: '2026-10-02',
+    createdAt: '2026-09-21',
+  },
+];

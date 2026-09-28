@@ -1,5 +1,5 @@
 // app/(tabs)/mapa.tsx
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef, useMemo, Component, ReactNode } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,8 @@ import {
   ScrollView,
   Platform,
   Alert,
+  UIManager,
+  Dimensions,
 } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,15 +19,54 @@ import { useGeoPhotos } from '@/context/GeoPhotosContext';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
 import type { GeoPhoto } from '@/types/geo';
 
+// Error Boundary para capturar si AIRMap no está disponible en la versión de Expo Go del usuario
+interface ErrorBoundaryProps {
+  fallback: ReactNode;
+  children: ReactNode;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+}
+
+class MapErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): ErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: unknown) {
+    console.warn(
+      'MapView nativo no disponible en Expo Go (AIRMap missing). Activando lienzo interactivo GeoMap:',
+      error
+    );
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
 export default function MapaScreen() {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
-  const { photos, removePhoto, clearAll } = useGeoPhotos();
+  const { photos, removePhoto } = useGeoPhotos();
   const geo = useGeoLocation({ watch: true });
 
   const [selectedPhoto, setSelectedPhoto] = useState<GeoPhoto | null>(null);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
 
-  // Separar fotos con y sin coordenadas (Requisito R3)
+  // Separar fotos con y sin coordenadas (Requisito R3 de la guía)
   const photosWithCoords = useMemo(
     () => photos.filter((p) => p.coords !== null),
     [photos]
@@ -36,7 +77,22 @@ export default function MapaScreen() {
     [photos]
   );
 
-  // Centro inicial del mapa: ubicación actual -> última foto con GPS -> fallback
+  // Determinar si el componente nativo AIRMap está registrado en el UIManager
+  const isAIRMapRegistered = useMemo(() => {
+    try {
+      if (Platform.OS === 'web') return false;
+      const getVMC = (UIManager as any)?.getViewManagerConfig;
+      if (typeof getVMC === 'function') {
+        const config = getVMC('AIRMap') || getVMC('RNMMapView');
+        return Boolean(config);
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  // Centro inicial del mapa
   const initialRegion = useMemo(() => {
     if (geo.coords) {
       return {
@@ -54,7 +110,7 @@ export default function MapaScreen() {
         longitudeDelta: 0.05,
       };
     }
-    // Fallback: Riohacha / Colombia
+    // Fallback: Riohacha
     return {
       latitude: 11.54444,
       longitude: -72.90722,
@@ -64,27 +120,31 @@ export default function MapaScreen() {
   }, [geo.coords, photosWithCoords]);
 
   const handleCenterOnUser = () => {
-    if (geo.coords && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: geo.coords.latitude,
-          longitude: geo.coords.longitude,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        },
-        600
-      );
+    if (geo.coords) {
+      if (isAIRMapRegistered && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: geo.coords.latitude,
+            longitude: geo.coords.longitude,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
+          },
+          600
+        );
+      } else {
+        setCanvasOffset({ x: 0, y: 0 });
+      }
     } else {
       Alert.alert(
         'Ubicación no disponible',
-        'Concede permiso de ubicación en GeoCam para centrar el mapa en tu posición actual.'
+        'Concede permiso de ubicación en la pestaña GeoCam para centrar el mapa en tu posición actual.'
       );
     }
   };
 
   const handleFocusPhoto = (photo: GeoPhoto) => {
     setSelectedPhoto(photo);
-    if (photo.coords && mapRef.current) {
+    if (photo.coords && isAIRMapRegistered && mapRef.current) {
       mapRef.current.animateToRegion(
         {
           latitude: photo.coords.latitude,
@@ -115,30 +175,98 @@ export default function MapaScreen() {
     );
   };
 
-  return (
-    <View style={styles.container}>
-      {/* Mapa interactivo */}
-      <MapView
-        ref={mapRef}
-        style={StyleSheet.absoluteFill}
-        initialRegion={initialRegion}
-        showsUserLocation={geo.permission === 'granted'}
-        showsMyLocationButton={false}
-      >
-        {photosWithCoords.map((photo) => {
+  // Proyección de coordenadas para el Lienzo Interactivo GeoMap (Fallback para Expo Go)
+  const baseLat = geo.coords?.latitude ?? (photosWithCoords[0]?.coords?.latitude || 11.5444);
+  const baseLng = geo.coords?.longitude ?? (photosWithCoords[0]?.coords?.longitude || -72.9072);
+
+  const projectToScreen = (lat: number, lng: number) => {
+    const scale = 4000 * zoomLevel;
+    const centerX = SCREEN_WIDTH / 2 + canvasOffset.x;
+    const centerY = (SCREEN_HEIGHT - 220) / 2 + canvasOffset.y;
+
+    const x = centerX + (lng - baseLng) * scale;
+    const y = centerY - (lat - baseLat) * scale;
+
+    return { x, y };
+  };
+
+  // Render del lienzo interactivo cuando AIRMap no está en el binario de Expo Go
+  const renderInteractiveCanvas = () => {
+    const userPos = geo.coords ? projectToScreen(geo.coords.latitude, geo.coords.longitude) : null;
+
+    return (
+      <View style={styles.canvasContainer}>
+        {/* Fondo de Cuadrícula GPS */}
+        <View style={styles.gridOverlay}>
+          {[-120, -60, 0, 60, 120].map((step) => (
+            <View
+              key={`h-${step}`}
+              style={[
+                styles.gridLineH,
+                { top: (SCREEN_HEIGHT - 220) / 2 + step * zoomLevel },
+              ]}
+            />
+          ))}
+          {[-120, -60, 0, 60, 120].map((step) => (
+            <View
+              key={`v-${step}`}
+              style={[
+                styles.gridLineV,
+                { left: SCREEN_WIDTH / 2 + step * zoomLevel },
+              ]}
+            />
+          ))}
+        </View>
+
+        {/* Anillos de Radar GPS */}
+        <View style={styles.radarRing1} />
+        <View style={styles.radarRing2} />
+
+        {/* Marcador de Posición del Usuario (GPS en vivo) */}
+        {userPos && (
+          <View
+            style={[
+              styles.userCanvasMarker,
+              { left: userPos.x - 14, top: userPos.y - 14 },
+            ]}
+          >
+            <View style={styles.userPulseRing} />
+            <View style={styles.userCenterDot}>
+              <Ionicons name="navigate" size={12} color="#FFFFFF" />
+            </View>
+            <View style={styles.userLabelPill}>
+              <Text style={styles.userLabelText}>Tú (GPS en vivo)</Text>
+            </View>
+          </View>
+        )}
+
+        {/* Pins Interactivos con Miniatura para cada foto con GPS */}
+        {photosWithCoords.map((photo, index) => {
           if (!photo.coords) return null;
+          const pos = projectToScreen(photo.coords.latitude, photo.coords.longitude);
+          const isSelected = selectedPhoto?.id === photo.id;
+
+          // Desplazamiento si están muy juntas para que no se tapen
+          const staggerX = (index % 2 === 0 ? 1 : -1) * (index * 6);
+          const staggerY = (index % 3 === 0 ? 1 : -1) * (index * 4);
+
           return (
-            <Marker
+            <TouchableOpacity
               key={photo.id}
-              coordinate={{
-                latitude: photo.coords.latitude,
-                longitude: photo.coords.longitude,
-              }}
+              activeOpacity={0.8}
               onPress={() => setSelectedPhoto(photo)}
+              style={[
+                styles.canvasPinWrap,
+                {
+                  left: pos.x - 22 + staggerX,
+                  top: pos.y - 48 + staggerY,
+                  zIndex: isSelected ? 50 : 20,
+                  transform: [{ scale: isSelected ? 1.15 : 1 }],
+                },
+              ]}
             >
-              {/* Pin personalizado con miniatura */}
-              <View style={styles.customPin}>
-                <Image source={{ uri: photo.uri }} style={styles.pinImage} />
+              <View style={[styles.canvasPinCard, isSelected && styles.canvasPinSelected]}>
+                <Image source={{ uri: photo.uri }} style={styles.canvasPinThumb} />
                 <View
                   style={[
                     styles.pinBadge,
@@ -150,41 +278,118 @@ export default function MapaScreen() {
                 >
                   <Ionicons
                     name={photo.source === 'camera' ? 'camera' : 'image'}
-                    size={10}
+                    size={9}
                     color="#FFFFFF"
                   />
                 </View>
-                <View style={styles.pinTriangle} />
               </View>
-
-              {/* Callout al tocar el marker */}
-              <Callout tooltip onPress={() => setSelectedPhoto(photo)}>
-                <View style={styles.calloutBox}>
-                  <Text style={styles.calloutTitle}>
-                    {photo.source === 'camera' ? 'Foto de Cámara' : 'Importada'}
-                  </Text>
-                  <Text style={styles.calloutCoords}>
-                    {photo.coords.latitude.toFixed(4)}, {photo.coords.longitude.toFixed(4)}
-                  </Text>
-                  <Text style={styles.calloutDate}>
-                    {new Date(photo.createdAt).toLocaleTimeString([], {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
-                  </Text>
-                </View>
-              </Callout>
-            </Marker>
+              <View style={styles.pinTriangle} />
+            </TouchableOpacity>
           );
         })}
-      </MapView>
+
+        {/* Controles de Zoom del Lienzo */}
+        <View style={styles.canvasZoomControls}>
+          <TouchableOpacity
+            style={styles.canvasControlBtn}
+            onPress={() => setZoomLevel((z) => Math.min(2.5, z + 0.3))}
+          >
+            <Ionicons name="add" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.canvasControlBtn}
+            onPress={() => setZoomLevel((z) => Math.max(0.6, z - 0.3))}
+          >
+            <Ionicons name="remove" size={18} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Chip informativo de Expo Go */}
+        <View style={styles.expoGoNotice}>
+          <Ionicons name="shield-checkmark" size={12} color="#10B981" />
+          <Text style={styles.expoGoNoticeText}>
+            Modo GeoMap Activo • {photosWithCoords.length} fotos con GPS
+          </Text>
+        </View>
+      </View>
+    );
+  };
+
+  return (
+    <View style={styles.container}>
+      {/* Si AIRMap no está en el binario nativo, se usa directamente el lienzo */}
+      {!isAIRMapRegistered ? (
+        renderInteractiveCanvas()
+      ) : (
+        <MapErrorBoundary fallback={renderInteractiveCanvas()}>
+          <MapView
+            ref={mapRef}
+            style={StyleSheet.absoluteFill}
+            initialRegion={initialRegion}
+            showsUserLocation={geo.permission === 'granted'}
+            showsMyLocationButton={false}
+          >
+            {photosWithCoords.map((photo) => {
+              if (!photo.coords) return null;
+              return (
+                <Marker
+                  key={photo.id}
+                  coordinate={{
+                    latitude: photo.coords.latitude,
+                    longitude: photo.coords.longitude,
+                  }}
+                  onPress={() => setSelectedPhoto(photo)}
+                >
+                  <View style={styles.customPin}>
+                    <Image source={{ uri: photo.uri }} style={styles.pinImage} />
+                    <View
+                      style={[
+                        styles.pinBadge,
+                        {
+                          backgroundColor:
+                            photo.source === 'camera' ? '#10B981' : '#3B82F6',
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        name={photo.source === 'camera' ? 'camera' : 'image'}
+                        size={10}
+                        color="#FFFFFF"
+                      />
+                    </View>
+                    <View style={styles.pinTriangle} />
+                  </View>
+
+                  <Callout tooltip onPress={() => setSelectedPhoto(photo)}>
+                    <View style={styles.calloutBox}>
+                      <Text style={styles.calloutTitle}>
+                        {photo.source === 'camera' ? 'Foto de Cámara' : 'Importada'}
+                      </Text>
+                      <Text style={styles.calloutCoords}>
+                        {photo.coords.latitude.toFixed(4)},{' '}
+                        {photo.coords.longitude.toFixed(4)}
+                      </Text>
+                      <Text style={styles.calloutDate}>
+                        {new Date(photo.createdAt).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </Text>
+                    </View>
+                  </Callout>
+                </Marker>
+              );
+            })}
+          </MapView>
+        </MapErrorBoundary>
+      )}
 
       {/* Header superior translúcido */}
       <View style={[styles.headerOverlay, { top: insets.top + 10 }]}>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>Mapa GeoCam</Text>
           <Text style={styles.headerSubtitle}>
-            {photosWithCoords.length} en el mapa • {photosWithoutCoords.length} sin GPS
+            {photosWithCoords.length} con GPS • {photosWithoutCoords.length} sin GPS
           </Text>
         </View>
 
@@ -254,7 +459,7 @@ export default function MapaScreen() {
         </View>
       )}
 
-      {/* Sección inferior: Fotos sin ubicación (Requisito R3) */}
+      {/* Sección inferior: Fotos sin ubicación (Requisito R3 de la guía) */}
       <View style={[styles.bottomDrawer, { paddingBottom: insets.bottom + 8 }]}>
         <View style={styles.drawerHeader}>
           <Ionicons name="location-outline" size={16} color="#F59E0B" />
@@ -299,6 +504,142 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#09090B',
+  },
+  canvasContainer: {
+    flex: 1,
+    backgroundColor: '#0A0E17',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  gridOverlay: {
+    ...StyleSheet.absoluteFill,
+  },
+  gridLineH: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  gridLineV: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    width: 1,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  radarRing1: {
+    position: 'absolute',
+    top: (SCREEN_HEIGHT - 220) / 2 - 90,
+    left: SCREEN_WIDTH / 2 - 90,
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.12)',
+  },
+  radarRing2: {
+    position: 'absolute',
+    top: (SCREEN_HEIGHT - 220) / 2 - 160,
+    left: SCREEN_WIDTH / 2 - 160,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.06)',
+  },
+  userCanvasMarker: {
+    position: 'absolute',
+    alignItems: 'center',
+    zIndex: 40,
+  },
+  userPulseRing: {
+    position: 'absolute',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  userCenterDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: '#10B981',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  userLabelPill: {
+    backgroundColor: 'rgba(9, 9, 11, 0.85)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    marginTop: 4,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  userLabelText: {
+    color: '#34D399',
+    fontSize: 9,
+    fontWeight: '800',
+  },
+  canvasPinWrap: {
+    position: 'absolute',
+    alignItems: 'center',
+  },
+  canvasPinCard: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2.5,
+    borderColor: '#FFFFFF',
+    backgroundColor: '#000000',
+    overflow: 'hidden',
+  },
+  canvasPinSelected: {
+    borderColor: '#10B981',
+    borderWidth: 3.5,
+  },
+  canvasPinThumb: {
+    width: '100%',
+    height: '100%',
+  },
+  canvasZoomControls: {
+    position: 'absolute',
+    right: 16,
+    top: 130,
+    gap: 8,
+    zIndex: 30,
+  },
+  canvasControlBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(24, 24, 27, 0.9)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
+  },
+  expoGoNotice: {
+    position: 'absolute',
+    bottom: 120,
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: 'rgba(9, 9, 11, 0.85)',
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(16, 185, 129, 0.25)',
+  },
+  expoGoNoticeText: {
+    color: '#A1A1AA',
+    fontSize: 10,
+    fontWeight: '600',
   },
   headerOverlay: {
     position: 'absolute',
@@ -364,13 +705,13 @@ const styles = StyleSheet.create({
   pinTriangle: {
     width: 0,
     height: 0,
-    borderLeftWidth: 6,
-    borderRightWidth: 6,
-    borderTopWidth: 8,
+    borderLeftWidth: 5,
+    borderRightWidth: 5,
+    borderTopWidth: 6,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderTopColor: '#FFFFFF',
-    marginTop: -2,
+    marginTop: -1,
   },
   calloutBox: {
     backgroundColor: '#09090B',

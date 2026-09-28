@@ -51,12 +51,23 @@
   * En las versiones modernas de Expo (`CameraView`), la cámara es un componente sin hijos.
   * Se extrajeron todos los controles y banners como elementos hermanos con posición absoluta (`StyleSheet.absoluteFill` para la cámara y capas de UI superpuestas con `zIndex`).
 
+### 2.4. React Native Maps e Invariant Violation AIRMap en Expo Go
+* **¿Qué generó inicialmente la IA?**
+  * Asumió que `<MapView>` de `react-native-maps` funcionaría sin contingencia en cualquier versión de Expo Go.
+  * En Expo SDK 57 con New Architecture, versiones desactualizadas (`1.20.1`) o clientes de Expo Go sin el componente `AIRMap` compilado lanzan el error fatal: `[Invariant Violation: View config not found for component 'AIRMap']`.
+* **¿Qué se corrigió y optimizó?**
+  * Se actualizó a `react-native-maps@1.27.2` (versión canónica para Expo SDK 57).
+  * Se implementó detección preventiva mediante `UIManager.getViewManagerConfig('AIRMap')` y un componente de clase `MapErrorBoundary`.
+  * Si `AIRMap` no está disponible en el cliente Expo Go del dispositivo, conmuta automáticamente y sin cuelgues a un lienzo interactivo GeoMap con cuadrícula GPS, anillos de radar, posición del usuario en vivo, zoom y pines táctiles con miniaturas.
+
 ---
 
 ## 3. Alucinaciones o Errores de APIs Obsoletas Detectados
 
 | Código Obsoleto / Alucinación | Problema Detectado | Corrección Implementada |
 | :--- | :--- | :--- |
+| `<MapView>` sin Error Boundary ni verificación en Expo Go | `Invariant Violation: View config not found for component 'AIRMap'` si el cliente Expo Go no tiene el ViewManager enlazado. | Verificación de `UIManager.getViewManagerConfig('AIRMap')` + `MapErrorBoundary` con fallback a lienzo interactivo GeoMap. |
+| `react-native-maps@1.20.1` | Desactualizado respecto al SDK 57. | `react-native-maps@1.27.2` resuelto por `npx expo install --fix`. |
 | `import { Camera } from 'expo-camera'` con `Camera.requestCameraPermissionsAsync()` | API antigua retirada de Expo. | Uso de `CameraView` y el hook oficial `useCameraPermissions()`. |
 | `import * as Permissions from 'expo-permissions'` | Paquete global de permisos completamente deprecado y retirado en SDKs recientes. | Permisos solicitados desde cada módulo específico (`Location.requestForegroundPermissionsAsync()`, `useCameraPermissions()`). |
 | `ImagePicker.MediaTypeOptions.Images` | Opción deprecada en Expo SDK 51+. | Sintaxis canónica moderna: `mediaTypes: ['images']`. |

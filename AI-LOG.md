@@ -1,6 +1,6 @@
 # Registro de Auditoría de IA (AI-LOG)
 
-**Estudiante(s):** Juan Carlos Áñez  
+**Estudiante(s):** Juan Carlos Áñez, Andres García
 **Semana:** 6 — Módulos Nativos y Sensores del Dispositivo  
 **Proyecto:** GeoCam — Taller Integrador 2  
 **Tecnologías:** React Native 0.86, Expo SDK 57, TypeScript, Expo Camera, Expo Location, Expo Sensors, Expo ImagePicker, React Native Maps.

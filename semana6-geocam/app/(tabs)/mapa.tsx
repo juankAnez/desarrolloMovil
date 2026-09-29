@@ -81,7 +81,8 @@ export default function MapaScreen() {
   const isAIRMapRegistered = useMemo(() => {
     try {
       if (Platform.OS === 'web') return false;
-      const getVMC = (UIManager as any)?.getViewManagerConfig;
+      const getVMC = (UIManager as { getViewManagerConfig?: (name: string) => unknown })
+        ?.getViewManagerConfig;
       if (typeof getVMC === 'function') {
         const config = getVMC('AIRMap') || getVMC('RNMMapView');
         return Boolean(config);

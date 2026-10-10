@@ -94,3 +94,4 @@
 1. **Paradigma Offline-First:** Los datos locales en SQLite constituyen la fuente primaria de verdad de la aplicación móvil. La interfaz responde de manera instantánea, sin depender de la conectividad de red ni arriesgar la pérdida de capturas en memoria RAM.
 2. **Ciclo de Vida de Migraciones:** Las migraciones versionadas (`0000`, `0001`) permiten evolucionar el esquema de base de datos en los dispositivos de los usuarios sin destruir los registros preexistentes ni provocar inconsistencias de datos.
 3. **Persistencia Física vs. Lógica:** Las URIs de la cámara temporalmente apuntan al directorio de caché (`cacheDirectory`), el cual el sistema operativo puede purgar bajo presión de memoria. La sincronización entre la copia física en el directorio de documentos (`Paths.document`) y el registro en la base de datos es indispensable para garantizar la durabilidad de los archivos.
+

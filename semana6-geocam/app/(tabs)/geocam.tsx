@@ -13,17 +13,19 @@ import { CameraView } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { useCamera } from '@/hooks/useCamera';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
-import { useGeoPhotos } from '@/context/GeoPhotosContext';
+import { usePhotos } from '@/hooks/usePhotos';
 import { PermissionPrimer } from '@/components/PermissionPrimer';
-import type { Coords, GeoPhoto } from '@/types/geo';
+import type { Coords } from '@/types/geo';
 
 export default function GeoCamScreen() {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
   const cam = useCamera();
   const geo = useGeoLocation({ watch: true });
-  const { addPhoto, lastPhoto } = useGeoPhotos();
+  const { addPhoto, lastPhoto } = usePhotos();
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -69,15 +71,11 @@ export default function GeoCamScreen() {
         ? geo.coords ?? (await geo.getCurrent())
         : null;
 
-    const newPhoto: GeoPhoto = {
-      id: String(Date.now()),
+    await addPhoto({
       uri: photo.uri,
       coords,
       source: 'camera',
-      createdAt: Date.now(),
-    };
-
-    addPhoto(newPhoto);
+    });
     setToastMessage(
       coords
         ? '📸 Foto guardada con coordenadas GPS'
@@ -117,15 +115,11 @@ export default function GeoCamScreen() {
           coords = geo.coords ?? (await geo.getCurrent());
         }
 
-        const newPhoto: GeoPhoto = {
-          id: String(Date.now()),
+        await addPhoto({
           uri: asset.uri,
           coords,
           source: 'gallery',
-          createdAt: Date.now(),
-        };
-
-        addPhoto(newPhoto);
+        });
         setToastMessage(
           coords
             ? '🖼️ Foto importada con ubicación'
@@ -204,9 +198,16 @@ export default function GeoCamScreen() {
       <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         {/* Botón de galería (R2) con miniatura o icono */}
         <Pressable
-          onPress={handleImportGallery}
+          onPress={() => {
+            if (lastPhoto) {
+              router.push(`/foto/${lastPhoto.id}`);
+            } else {
+              handleImportGallery();
+            }
+          }}
+          onLongPress={handleImportGallery}
           style={styles.galleryButton}
-          accessibilityLabel="Importar de galería"
+          accessibilityLabel="Ver detalle de foto o importar de galería"
         >
           {lastPhoto ? (
             <View style={styles.previewWrap}>

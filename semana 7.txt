@@ -1,0 +1,27 @@
+# TALLER SEMANA 7: BASE DE DATOS LOCAL OFFLINE-FIRST CON DRIZZLE ORM Y SQLITE
+
+Estudiante(s): Juan Carlos Áñez, Andres García
+Proyecto: GeoCam persistente (Taller Integrador 2)
+Tecnologías: React Native 0.86, Expo SDK 57, TypeScript, Drizzle ORM, Drizzle Kit, Expo SQLite, Expo FileSystem (Class-based API).
+
+-------------------------------------------------------------------------------
+1. OBJETIVOS Y REQUISITOS CUMPLIDOS
+-------------------------------------------------------------------------------
+- T1. Configuración de Drizzle ORM, drizzle.config.ts, babel.config.js con plugin inline-import, metro.config.js con extensión .sql y primera migración 0000.
+- T2. Inicialización de cliente en db/client.ts con openDatabaseSync('geocam.db', { enableChangeListener: true }) y PRAGMA foreign_keys = ON;. Protección del layout raíz con useMigrations.
+- T3. Repositorio en db/repositories/photos.ts y db/repositories/albums.ts desacoplados de la UI con listQuery, withLocationQuery (isNotNull), create, update, toggleFavorite, remove y clearAll.
+- T4. Hook usePhotos con useLiveQuery para reactividad automática ante inserciones, actualizaciones y cambios de filtros.
+- T5. Integración con geocam.tsx y mapa.tsx. Acelerómetro (useShake) conectado con clearAll().
+- T6. Verificación de persistencia Offline-First al cerrar la app o activar modo avión.
+- C1. Tabla albums (id, name único, createdAt) y relación 1 a N con photos (albumId como llave foránea con onDelete: 'set null').
+- C2. Segunda migración versionada 0001 agregando note (texto opcional) y favorite (entero booleano default false).
+- C3. Pantalla de detalle y CRUD completo en app/foto/[id].tsx (ver foto, editar nota, toggle favorito, cambiar álbum, eliminar con diálogo de confirmación).
+- C4. Búsqueda reactiva por texto libre en notas (like) y filtros por álbum y solo favoritos usando useLiveQuery.
+- C5. Persistencia permanente de archivos con expo-file-system (services/photoFiles.ts) usando las nuevas clases File, Directory y Paths. Borrado físico del archivo al eliminar el registro en SQLite.
+- C6. README.md con diagrama ERD en Mermaid y arquitectura en 5 capas, más AI-LOG.md completo con auditoría de IA y tabla de alucinaciones.
+
+-------------------------------------------------------------------------------
+2. COMANDOS DE EJECUCIÓN
+-------------------------------------------------------------------------------
+cd semana6-geocam
+npx expo start -c

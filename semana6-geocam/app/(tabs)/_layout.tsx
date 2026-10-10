@@ -3,12 +3,12 @@ import { Tabs } from 'expo-router';
 import { Platform, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useGeoPhotos } from '@/context/GeoPhotosContext';
+import { usePhotos } from '@/hooks/usePhotos';
 import { useShake } from '@/hooks/useShake';
 
 export default function TabsLayout() {
   const insets = useSafeAreaInsets();
-  const { photos, clearAll } = useGeoPhotos();
+  const { photos, clearAll } = usePhotos();
 
   // R4: Integración del Custom Hook useShake
   useShake(() => {

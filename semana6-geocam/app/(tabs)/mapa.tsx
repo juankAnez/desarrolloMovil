@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   ScrollView,
+  TextInput,
   Platform,
   Alert,
   UIManager,
@@ -14,10 +15,12 @@ import {
 } from 'react-native';
 import MapView, { Marker, Callout } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useGeoPhotos } from '@/context/GeoPhotosContext';
+import { usePhotos } from '@/hooks/usePhotos';
+import { useAlbums } from '@/hooks/useAlbums';
 import { useGeoLocation } from '@/hooks/useGeoLocation';
-import type { GeoPhoto } from '@/types/geo';
+import type { PhotoWithAlbum } from '@/db/repositories/photos';
 
 // Error Boundary para capturar si AIRMap no está disponible en la versión de Expo Go del usuario
 interface ErrorBoundaryProps {
@@ -57,23 +60,36 @@ class MapErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 export default function MapaScreen() {
+  const router = useRouter();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
-  const { photos, removePhoto } = useGeoPhotos();
+
+  // Hook reactivo a SQLite con soporte de filtros en vivo (C4)
+  const {
+    photos,
+    photosWithLocation,
+    removePhoto,
+    searchQuery,
+    setSearchQuery,
+    selectedAlbumId,
+    setSelectedAlbumId,
+    onlyFavorites,
+    setOnlyFavorites,
+  } = usePhotos();
+
+  const { albums } = useAlbums();
   const geo = useGeoLocation({ watch: true });
 
-  const [selectedPhoto, setSelectedPhoto] = useState<GeoPhoto | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<PhotoWithAlbum | null>(null);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
 
-  // Separar fotos con y sin coordenadas (Requisito R3 de la guía)
-  const photosWithCoords = useMemo(
-    () => photos.filter((p) => p.coords !== null),
-    [photos]
-  );
+  // Fotos con coordenadas obtenidas directamente de la query reactiva de Drizzle
+  const photosWithCoords = photosWithLocation;
 
+  // Fotos sin coordenadas (filtradas en memoria para el cajón inferior)
   const photosWithoutCoords = useMemo(
-    () => photos.filter((p) => p.coords === null),
+    () => photos.filter((p) => p.latitude === null || p.longitude === null),
     [photos]
   );
 
@@ -103,10 +119,10 @@ export default function MapaScreen() {
         longitudeDelta: 0.05,
       };
     }
-    if (photosWithCoords.length > 0 && photosWithCoords[0].coords) {
+    if (photosWithCoords.length > 0 && photosWithCoords[0].latitude && photosWithCoords[0].longitude) {
       return {
-        latitude: photosWithCoords[0].coords.latitude,
-        longitude: photosWithCoords[0].coords.longitude,
+        latitude: photosWithCoords[0].latitude,
+        longitude: photosWithCoords[0].longitude,
         latitudeDelta: 0.05,
         longitudeDelta: 0.05,
       };
@@ -143,13 +159,13 @@ export default function MapaScreen() {
     }
   };
 
-  const handleFocusPhoto = (photo: GeoPhoto) => {
+  const handleFocusPhoto = (photo: PhotoWithAlbum) => {
     setSelectedPhoto(photo);
-    if (photo.coords && isAIRMapRegistered && mapRef.current) {
+    if (photo.latitude && photo.longitude && isAIRMapRegistered && mapRef.current) {
       mapRef.current.animateToRegion(
         {
-          latitude: photo.coords.latitude,
-          longitude: photo.coords.longitude,
+          latitude: photo.latitude,
+          longitude: photo.longitude,
           latitudeDelta: 0.015,
           longitudeDelta: 0.015,
         },
@@ -158,17 +174,17 @@ export default function MapaScreen() {
     }
   };
 
-  const confirmDeletePhoto = (photo: GeoPhoto) => {
+  const confirmDeletePhoto = (photo: PhotoWithAlbum) => {
     Alert.alert(
       '¿Eliminar foto?',
-      'Esta imagen será removida del mapa y de GeoCam.',
+      'Esta imagen y su archivo permanente se eliminarán por completo de la base de datos.',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: () => {
-            removePhoto(photo.id);
+          onPress: async () => {
+            await removePhoto(photo.id);
             if (selectedPhoto?.id === photo.id) setSelectedPhoto(null);
           },
         },
@@ -177,8 +193,8 @@ export default function MapaScreen() {
   };
 
   // Proyección de coordenadas para el Lienzo Interactivo GeoMap (Fallback para Expo Go)
-  const baseLat = geo.coords?.latitude ?? (photosWithCoords[0]?.coords?.latitude || 11.5444);
-  const baseLng = geo.coords?.longitude ?? (photosWithCoords[0]?.coords?.longitude || -72.9072);
+  const baseLat = geo.coords?.latitude ?? (photosWithCoords[0]?.latitude || 11.5444);
+  const baseLng = geo.coords?.longitude ?? (photosWithCoords[0]?.longitude || -72.9072);
 
   const projectToScreen = (lat: number, lng: number) => {
     const scale = 4000 * zoomLevel;
@@ -243,11 +259,10 @@ export default function MapaScreen() {
 
         {/* Pins Interactivos con Miniatura para cada foto con GPS */}
         {photosWithCoords.map((photo, index) => {
-          if (!photo.coords) return null;
-          const pos = projectToScreen(photo.coords.latitude, photo.coords.longitude);
+          if (photo.latitude === null || photo.longitude === null) return null;
+          const pos = projectToScreen(photo.latitude, photo.longitude);
           const isSelected = selectedPhoto?.id === photo.id;
 
-          // Desplazamiento si están muy juntas para que no se tapen
           const staggerX = (index % 2 === 0 ? 1 : -1) * (index * 6);
           const staggerY = (index % 3 === 0 ? 1 : -1) * (index * 4);
 
@@ -283,6 +298,11 @@ export default function MapaScreen() {
                     color="#FFFFFF"
                   />
                 </View>
+                {photo.favorite && (
+                  <View style={styles.pinFavBadge}>
+                    <Ionicons name="star" size={8} color="#FBBF24" />
+                  </View>
+                )}
               </View>
               <View style={styles.pinTriangle} />
             </TouchableOpacity>
@@ -318,7 +338,7 @@ export default function MapaScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Si AIRMap no está en el binario nativo, se usa directamente el lienzo */}
+      {/* Si AIRMap no está en el binario nativo, se usa directamente el lienzo interactivo */}
       {!isAIRMapRegistered ? (
         renderInteractiveCanvas()
       ) : (
@@ -331,13 +351,13 @@ export default function MapaScreen() {
             showsMyLocationButton={false}
           >
             {photosWithCoords.map((photo) => {
-              if (!photo.coords) return null;
+              if (photo.latitude === null || photo.longitude === null) return null;
               return (
                 <Marker
                   key={photo.id}
                   coordinate={{
-                    latitude: photo.coords.latitude,
-                    longitude: photo.coords.longitude,
+                    latitude: photo.latitude,
+                    longitude: photo.longitude,
                   }}
                   onPress={() => setSelectedPhoto(photo)}
                 >
@@ -358,24 +378,28 @@ export default function MapaScreen() {
                         color="#FFFFFF"
                       />
                     </View>
+                    {photo.favorite && (
+                      <View style={styles.pinFavBadge}>
+                        <Ionicons name="star" size={9} color="#FBBF24" />
+                      </View>
+                    )}
                     <View style={styles.pinTriangle} />
                   </View>
 
-                  <Callout tooltip onPress={() => setSelectedPhoto(photo)}>
+                  <Callout tooltip onPress={() => router.push(`/foto/${photo.id}` as any)}>
                     <View style={styles.calloutBox}>
                       <Text style={styles.calloutTitle}>
                         {photo.source === 'camera' ? 'Foto de Cámara' : 'Importada'}
                       </Text>
+                      {photo.note ? (
+                        <Text style={styles.calloutNote} numberOfLines={1}>
+                          "{photo.note}"
+                        </Text>
+                      ) : null}
                       <Text style={styles.calloutCoords}>
-                        {photo.coords.latitude.toFixed(4)},{' '}
-                        {photo.coords.longitude.toFixed(4)}
+                        {photo.latitude.toFixed(4)}, {photo.longitude.toFixed(4)}
                       </Text>
-                      <Text style={styles.calloutDate}>
-                        {new Date(photo.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </Text>
+                      <Text style={styles.calloutAction}>Toca para editar ✏️</Text>
                     </View>
                   </Callout>
                 </Marker>
@@ -385,75 +409,182 @@ export default function MapaScreen() {
         </MapErrorBoundary>
       )}
 
-      {/* Header superior translúcido */}
-      <View style={[styles.headerOverlay, { top: insets.top + 10 }]}>
-        <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>Mapa GeoCam</Text>
-          <Text style={styles.headerSubtitle}>
-            {photosWithCoords.length} con GPS • {photosWithoutCoords.length} sin GPS
-          </Text>
+      {/* Header superior translúcido con barra de búsqueda y filtros reactivos (C4) */}
+      <View style={[styles.headerOverlay, { top: insets.top + 8 }]}>
+        <View style={styles.headerTopRow}>
+          <View style={styles.headerInfo}>
+            <Text style={styles.headerTitle}>Mapa GeoCam</Text>
+            <Text style={styles.headerSubtitle}>
+              {photosWithCoords.length} con GPS • {photosWithoutCoords.length} sin GPS
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            onPress={handleCenterOnUser}
+            style={styles.gpsButton}
+            activeOpacity={0.8}
+            accessibilityLabel="Mi ubicación"
+          >
+            <Ionicons
+              name={geo.coords ? 'locate' : 'locate-outline'}
+              size={20}
+              color={geo.coords ? '#10B981' : '#E4E4E7'}
+            />
+          </TouchableOpacity>
         </View>
 
-        <TouchableOpacity
-          onPress={handleCenterOnUser}
-          style={styles.gpsButton}
-          activeOpacity={0.8}
-          accessibilityLabel="Mi ubicación"
-        >
-          <Ionicons
-            name={geo.coords ? 'locate' : 'locate-outline'}
-            size={22}
-            color={geo.coords ? '#10B981' : '#E4E4E7'}
+        {/* Campo de búsqueda reactiva por texto libre en note (C4) */}
+        <View style={styles.searchBar}>
+          <Ionicons name="search" size={16} color="#A1A1AA" style={styles.searchIcon} />
+          <TextInput
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder="Buscar notas en vivo..."
+            placeholderTextColor="#71717A"
+            style={styles.searchInput}
+            autoCorrect={false}
           />
-        </TouchableOpacity>
+          {searchQuery.length > 0 && (
+            <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Ionicons name="close-circle" size={16} color="#A1A1AA" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {/* Filtros reactivos por álbum y favoritos (C4) */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filtersScroll}
+        >
+          {/* Toggle Solo Favoritos */}
+          <TouchableOpacity
+            style={[styles.filterChip, onlyFavorites && styles.filterChipActiveGold]}
+            onPress={() => setOnlyFavorites(!onlyFavorites)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={onlyFavorites ? 'star' : 'star-outline'}
+              size={13}
+              color={onlyFavorites ? '#F59E0B' : '#A1A1AA'}
+            />
+            <Text style={[styles.filterChipText, onlyFavorites && styles.filterChipTextActiveGold]}>
+              Favoritos
+            </Text>
+          </TouchableOpacity>
+
+          {/* Chip Todos los álbumes */}
+          <TouchableOpacity
+            style={[styles.filterChip, selectedAlbumId === null && styles.filterChipActive]}
+            onPress={() => setSelectedAlbumId(null)}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.filterChipText,
+                selectedAlbumId === null && styles.filterChipTextActive,
+              ]}
+            >
+              Todos ({photos.length})
+            </Text>
+          </TouchableOpacity>
+
+          {/* Chips dinámicos por Álbum */}
+          {albums.map((album) => {
+            const isSelected = selectedAlbumId === album.id;
+            return (
+              <TouchableOpacity
+                key={album.id}
+                style={[styles.filterChip, isSelected && styles.filterChipActive]}
+                onPress={() => setSelectedAlbumId(isSelected ? null : album.id)}
+                activeOpacity={0.7}
+              >
+                <Ionicons
+                  name="folder-outline"
+                  size={12}
+                  color={isSelected ? '#10B981' : '#A1A1AA'}
+                />
+                <Text style={[styles.filterChipText, isSelected && styles.filterChipTextActive]}>
+                  {album.name}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      {/* Tarjeta de foto seleccionada */}
+      {/* Tarjeta flotante de foto seleccionada con acceso directo a CRUD (C3) */}
       {selectedPhoto && (
         <View style={[styles.selectedCard, { bottom: 155 }]}>
           <Image source={{ uri: selectedPhoto.uri }} style={styles.selectedImg} />
           <View style={styles.selectedMeta}>
             <View style={styles.selectedRow}>
-              <View
-                style={[
-                  styles.badge,
-                  {
-                    backgroundColor:
-                      selectedPhoto.source === 'camera' ? '#064E3B' : '#1E3A8A',
-                  },
-                ]}
-              >
-                <Text style={styles.badgeText}>
-                  {selectedPhoto.source === 'camera' ? 'CÁMARA' : 'GALERÍA'}
-                </Text>
+              <View style={styles.badgeRow}>
+                <View
+                  style={[
+                    styles.badge,
+                    {
+                      backgroundColor:
+                        selectedPhoto.source === 'camera' ? '#064E3B' : '#1E3A8A',
+                    },
+                  ]}
+                >
+                  <Text style={styles.badgeText}>
+                    {selectedPhoto.source === 'camera' ? 'CÁMARA' : 'GALERÍA'}
+                  </Text>
+                </View>
+                {selectedPhoto.albumName && (
+                  <View style={styles.albumBadge}>
+                    <Text style={styles.albumBadgeText} numberOfLines={1}>
+                      📁 {selectedPhoto.albumName}
+                    </Text>
+                  </View>
+                )}
+                {selectedPhoto.favorite && (
+                  <Ionicons name="star" size={14} color="#F59E0B" style={{ marginLeft: 4 }} />
+                )}
               </View>
-              <Text style={styles.selectedDate}>
-                {new Date(selectedPhoto.createdAt).toLocaleDateString()}
-              </Text>
+
+              <TouchableOpacity
+                onPress={() => setSelectedPhoto(null)}
+                style={styles.closeCardIcon}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Ionicons name="close" size={18} color="#A1A1AA" />
+              </TouchableOpacity>
             </View>
 
-            {selectedPhoto.coords ? (
+            {selectedPhoto.note ? (
+              <Text style={styles.selectedNote} numberOfLines={2}>
+                "{selectedPhoto.note}"
+              </Text>
+            ) : null}
+
+            {selectedPhoto.latitude !== null && selectedPhoto.longitude !== null ? (
               <Text style={styles.selectedCoords}>
-                📍 {selectedPhoto.coords.latitude.toFixed(5)},{' '}
-                {selectedPhoto.coords.longitude.toFixed(5)}
+                📍 {selectedPhoto.latitude.toFixed(4)}, {selectedPhoto.longitude.toFixed(4)}
               </Text>
             ) : (
-              <Text style={styles.selectedNoCoords}>⚠️ Sin coordenadas</Text>
+              <Text style={styles.selectedNoCoords}>⚠️ Sin coordenadas GPS</Text>
             )}
 
             <View style={styles.selectedActions}>
               <TouchableOpacity
+                onPress={() => router.push(`/foto/${selectedPhoto.id}` as any)}
+                style={styles.editBtn}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="create-outline" size={14} color="#10B981" />
+                <Text style={styles.editText}>Ver / Editar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
                 onPress={() => confirmDeletePhoto(selectedPhoto)}
                 style={styles.deleteBtn}
+                activeOpacity={0.8}
               >
                 <Ionicons name="trash-outline" size={14} color="#EF4444" />
                 <Text style={styles.deleteText}>Eliminar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => setSelectedPhoto(null)}
-                style={styles.closeCardBtn}
-              >
-                <Text style={styles.closeCardText}>Cerrar</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -492,6 +623,11 @@ export default function MapaScreen() {
                     {item.source === 'camera' ? 'CAM' : 'GAL'}
                   </Text>
                 </View>
+                {item.favorite && (
+                  <View style={styles.drawerFavBadge}>
+                    <Ionicons name="star" size={8} color="#FBBF24" />
+                  </View>
+                )}
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -551,39 +687,40 @@ const styles = StyleSheet.create({
   },
   userCanvasMarker: {
     position: 'absolute',
+    width: 28,
+    height: 28,
     alignItems: 'center',
-    zIndex: 40,
+    justifyContent: 'center',
   },
   userPulseRing: {
     position: 'absolute',
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
     backgroundColor: 'rgba(16, 185, 129, 0.25)',
   },
   userCenterDot: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 18,
+    height: 18,
+    borderRadius: 9,
     backgroundColor: '#10B981',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
   },
   userLabelPill: {
-    backgroundColor: 'rgba(9, 9, 11, 0.85)',
+    position: 'absolute',
+    top: 26,
+    backgroundColor: 'rgba(9, 9, 11, 0.9)',
     paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 6,
-    marginTop: 4,
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.15)',
+    borderColor: 'rgba(16, 185, 129, 0.4)',
   },
   userLabelText: {
-    color: '#34D399',
+    color: '#10B981',
     fontSize: 9,
-    fontWeight: '800',
+    fontWeight: '700',
   },
   canvasPinWrap: {
     position: 'absolute',
@@ -595,8 +732,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     borderWidth: 2.5,
     borderColor: '#FFFFFF',
-    backgroundColor: '#000000',
     overflow: 'hidden',
+    backgroundColor: '#000',
   },
   canvasPinSelected: {
     borderColor: '#10B981',
@@ -606,10 +743,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  pinFavBadge: {
+    position: 'absolute',
+    bottom: -1,
+    right: -1,
+    backgroundColor: '#09090B',
+    borderRadius: 6,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: '#FBBF24',
+  },
   canvasZoomControls: {
     position: 'absolute',
     right: 16,
-    top: 130,
+    top: 170,
     gap: 8,
     zIndex: 30,
   },
@@ -644,18 +791,21 @@ const styles = StyleSheet.create({
   },
   headerOverlay: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: 'rgba(9, 9, 11, 0.85)',
-    paddingHorizontal: 16,
+    left: 12,
+    right: 12,
+    backgroundColor: 'rgba(15, 15, 20, 0.92)',
+    paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.12)',
     zIndex: 10,
+    gap: 8,
+  },
+  headerTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   headerInfo: {
     flex: 1,
@@ -671,14 +821,70 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   gpsButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'rgba(255, 255, 255, 0.15)',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  searchIcon: {
+    marginRight: 6,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 13,
+    color: '#FFFFFF',
+    padding: 0,
+  },
+  filtersScroll: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingVertical: 2,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+  },
+  filterChipActive: {
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    borderColor: '#10B981',
+  },
+  filterChipActiveGold: {
+    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    borderColor: '#F59E0B',
+  },
+  filterChipText: {
+    fontSize: 11,
+    color: '#A1A1AA',
+    fontWeight: '600',
+  },
+  filterChipTextActive: {
+    color: '#10B981',
+    fontWeight: '700',
+  },
+  filterChipTextActiveGold: {
+    color: '#F59E0B',
+    fontWeight: '700',
   },
   customPin: {
     alignItems: 'center',
@@ -720,12 +926,18 @@ const styles = StyleSheet.create({
     padding: 10,
     borderWidth: 1,
     borderColor: 'rgba(255, 255, 255, 0.2)',
-    minWidth: 140,
+    minWidth: 150,
   },
   calloutTitle: {
     color: '#FFFFFF',
     fontSize: 12,
     fontWeight: '700',
+  },
+  calloutNote: {
+    color: '#D4D4D8',
+    fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   calloutCoords: {
     color: '#10B981',
@@ -733,10 +945,11 @@ const styles = StyleSheet.create({
     fontFamily: 'monospace',
     marginTop: 2,
   },
-  calloutDate: {
-    color: '#A1A1AA',
+  calloutAction: {
+    color: '#38BDF8',
     fontSize: 10,
-    marginTop: 2,
+    fontWeight: '600',
+    marginTop: 4,
   },
   selectedCard: {
     position: 'absolute',
@@ -770,6 +983,12 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  badgeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    flex: 1,
+  },
   badge: {
     paddingHorizontal: 6,
     paddingVertical: 2,
@@ -780,9 +999,26 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '800',
   },
-  selectedDate: {
-    color: '#A1A1AA',
+  albumBadge: {
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    maxWidth: 90,
+  },
+  albumBadgeText: {
+    color: '#D4D4D8',
+    fontSize: 9,
+    fontWeight: '600',
+  },
+  closeCardIcon: {
+    padding: 2,
+  },
+  selectedNote: {
+    color: '#E4E4E7',
     fontSize: 11,
+    fontStyle: 'italic',
+    marginTop: 2,
   },
   selectedCoords: {
     color: '#10B981',
@@ -801,23 +1037,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 6,
   },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  editText: {
+    color: '#10B981',
+    fontSize: 12,
+    fontWeight: '700',
+  },
   deleteBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
   },
   deleteText: {
     color: '#EF4444',
     fontSize: 12,
     fontWeight: '600',
-  },
-  closeCardBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  closeCardText: {
-    color: '#D4D4D8',
-    fontSize: 12,
   },
   bottomDrawer: {
     position: 'absolute',
@@ -877,5 +1121,13 @@ const styles = StyleSheet.create({
     color: '#F59E0B',
     fontSize: 8,
     fontWeight: '800',
+  },
+  drawerFavBadge: {
+    position: 'absolute',
+    top: 2,
+    right: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    padding: 2,
+    borderRadius: 4,
   },
 });

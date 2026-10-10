@@ -23,5 +23,5 @@ Tecnologías: React Native 0.86, Expo SDK 57, TypeScript, Drizzle ORM, Drizzle K
 -------------------------------------------------------------------------------
 2. COMANDOS DE EJECUCIÓN
 -------------------------------------------------------------------------------
-cd semana6-geocam
+cd "semana 6 y 7 -geocam"
 npx expo start -c

@@ -105,7 +105,7 @@ flowchart TD
 ## 📂 Estructura del Código
 
 ```
-semana6-geocam/
+semana 6 y 7 -geocam/
 ├── app/
 │   ├── (tabs)/
 │   │   ├── _layout.tsx           # Pestañas inferiores con shake to clear
@@ -191,7 +191,7 @@ Al agitar físicamente el teléfono:
 
 ```bash
 # 1. Ingresar a la carpeta del proyecto
-cd semana6-geocam
+cd "semana 6 y 7 -geocam"
 
 # 2. Instalar dependencias (si es necesario)
 npm install

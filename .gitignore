@@ -17,3 +17,8 @@ yarn-debug.log*
 yarn-error.log*
 .DS_Store
 Thumbs.db
+
+# Variables de entorno secretas (REGLA DEL PARCIAL: NUNCA SUBIR .env)
+.env
+.env*.local
+*.env

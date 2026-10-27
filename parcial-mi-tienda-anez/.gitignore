@@ -1,0 +1,29 @@
+# Dependencias
+node_modules/
+package-lock.json
+
+# Variables de entorno secretas (REGLA DE ENTREGA: .env NUNCA se sube)
+.env
+.env*.local
+.env.production
+.env.staging
+
+# Expo y compilaciones
+.expo/
+dist/
+web-build/
+*.tsbuildinfo
+
+# Logs y caches
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+
+# SQLite local temporal en desarrollo si se usa en raíz
+*.db
+*.db-journal
+*.db-wal
+*.db-shm

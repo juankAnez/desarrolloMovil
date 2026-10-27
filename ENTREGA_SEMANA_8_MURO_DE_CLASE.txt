@@ -1,0 +1,68 @@
+================================================================================
+INFORMACIÓN DE ENTREGA - ACTIVIDAD SEMANA 8: MURO DE CLASE (SUPABASE)
+================================================================================
+
+ESTUDIANTE:
+Juan Carlos Áñez Ahumada
+
+ASIGNATURA:
+Programación Móvil Avanzada
+Universidad de La Guajira
+
+ACTIVIDAD:
+Semana 8: Backend as a Service con Supabase — Muro de Clase 🧱
+
+ENLACE AL REPOSITORIO GITHUB:
+https://github.com/juankAnez/desarrolloMovil
+
+UBICACIÓN EXACTA DEL PROYECTO DENTRO DEL REPOSITORIO:
+Ruta en el repo: semana 6 y 7 -geocam/muro-de-clase
+Enlace directo en GitHub:
+https://github.com/juankAnez/desarrolloMovil/tree/main/semana%206%20y%207%20-geocam/muro-de-clase
+
+RAMA:
+main
+
+--------------------------------------------------------------------------------
+RESUMEN DE IMPLEMENTACIÓN TÉCNICA:
+--------------------------------------------------------------------------------
+1. Autenticación Segura (Supabase Auth):
+   - Registro e inicio de sesión con email y contraseña.
+   - Rutas protegidas mediante Stack.Protected en Expo Router.
+   - Sesión persistente y cifrada con expo-secure-store (LargeSecureStoreAdapter)
+     en Keychain / Keystore (sin usar AsyncStorage).
+
+2. Base de Datos en Tiempo Real (PostgreSQL + Realtime):
+   - Tabla `public.posts` con Row Level Security (RLS) habilitado.
+   - Políticas RLS para lectura pública y creación/eliminación exclusiva del autor.
+   - Suscripción reactiva mediante WebSocket (`supabase.channel('muro-posts')`) 
+     con cleanup seguro en useEffect.
+
+3. Almacenamiento en la Nube (Supabase Storage):
+   - Bucket público `muro` para imágenes adjuntas.
+   - Políticas RLS que restringen la subida y eliminación únicamente a la 
+     carpeta del propio usuario autenticado (`userId/*`).
+
+4. Seguridad y Buenas Prácticas:
+   - Variables de entorno en .env protegidas e ignoradas en .gitignore.
+   - Archivo .env.example versionado en el repositorio.
+   - Auditoría y detección de errores de IA documentados en AI-LOG.md.
+
+--------------------------------------------------------------------------------
+INSTRUCCIONES DE EJECUCIÓN:
+--------------------------------------------------------------------------------
+1. Clonar el repositorio:
+   git clone https://github.com/juankAnez/desarrolloMovil.git
+   cd "desarrolloMovil/semana 6 y 7 -geocam/muro-de-clase"
+
+2. Instalar dependencias:
+   npm install
+
+3. Configurar variables de entorno:
+   Copiar .env.example como .env y colocar las credenciales del proyecto:
+   EXPO_PUBLIC_SUPABASE_URL=https://rmrimviqmefcisfrkgjz.supabase.co
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_5_CP_id8WOwR98ecJi3bUg_XHhjQ0_4
+
+4. Iniciar la aplicación:
+   npx expo start -c
+================================================================================

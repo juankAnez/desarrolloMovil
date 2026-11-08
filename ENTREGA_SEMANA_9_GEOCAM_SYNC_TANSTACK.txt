@@ -1,0 +1,93 @@
+================================================================================
+INFORMACIÓN DE ENTREGA - ACTIVIDAD SEMANA 9: GEOCAM SYNC + TANSTACK QUERY FEED
+================================================================================
+
+ESTUDIANTE:
+Juan Carlos Áñez Ahumada
+
+ASIGNATURA:
+Programación Móvil Avanzada
+Universidad de La Guajira
+
+ACTIVIDAD:
+Semana 9: TanStack Query y Sincronización Offline-First
+- Sincronización bidireccional con soporte para borrados (Soft Delete).
+- Feed paginado de la nube con TanStack Query y manejadores de UI completos.
+
+ENLACE AL REPOSITORIO GITHUB:
+https://github.com/juankAnez/desarrolloMovil
+
+UBICACIÓN EXACTA DEL PROYECTO PRINCIPAL EN EL REPOSITORIO:
+Ruta en el repo: semana 6 y 7 -geocam/geocam-sync
+Enlace directo en GitHub:
+https://github.com/juankAnez/desarrolloMovil/tree/main/semana%206%20y%207%20-geocam/geocam-sync
+
+(También disponible el ejemplo de clase standalone en:)
+https://github.com/juankAnez/desarrolloMovil/tree/main/semana%206%20y%207%20-geocam/muro-tanstack
+
+RAMA:
+main
+
+--------------------------------------------------------------------------------
+RESUMEN DE IMPLEMENTACIÓN TÉCNICA:
+--------------------------------------------------------------------------------
+1. Sincronización Bidireccional de Borrados (Soft Delete / Borrado Lógico):
+   - SQLite Local (Drizzle ORM): Se incorporó la columna `deleted_at: integer`
+     a la tabla `photos` y se generaron las migraciones correspondientes.
+   - Supabase (PostgreSQL): Se añadió la columna `deleted_at: timestamptz`
+     activando el trigger `touch_server_updated_at`.
+   - Repositorio (`photosRepo`): Todos los listados, mapas y búsquedas filtran
+     `WHERE deleted_at IS NULL`. Se crearon los métodos `softDelete` y
+     `softDeleteAll` (para el sensor de agitado / shake).
+   - Servicio de Sincronización (`services/sync.ts`):
+     * En `push`: Detecta fotos con `deletedAt != null`, envía `deleted_at`
+       a Supabase vía upsert, limpia el storage y marca `syncedAt = updatedAt`.
+     * En `pull`: Detecta `remote.deleted_at != null`. Si la versión remota gana
+       (resolución Last-Write-Wins), marca borrado lógico en local y elimina el
+       archivo físico de la memoria del teléfono.
+
+2. Feed Paginado de la Nube con TanStack Query v5:
+   - Pestaña nativa "Muro Nube" en la barra de pestañas (`app/(tabs)/muro.tsx`).
+   - Paginación basada en cursores (`useInfiniteQuery` con cursor `created_at < cursor`
+     y límite de 10 posts por página).
+   - Búsqueda en vivo con debounce (`useDebouncedValue` a 350 ms) y
+     `placeholderData: keepPreviousData` para evitar parpadeos en pantalla.
+   - Invalidación en tiempo real con canales WebSockets de Supabase (`usePostsRealtime`).
+
+3. Manejadores de UI Completos:
+   - Banner de estado Offline (`useIsOnline` conectado a NetInfo).
+   - Estado de carga inicial con spinner (`ActivityIndicator`).
+   - Estado pausado amigable cuando se abre sin red y sin caché previa.
+   - Estado de error con descripción y botón interactivo "Reintentar" (`refetch`).
+   - Estado vacío diferenciado (sin resultados de búsqueda vs. muro sin publicaciones).
+   - Deslizar para refrescar (Pull-to-Refresh con `RefreshControl`).
+   - Scroll infinito con indicador inferior durante la carga de nuevas páginas.
+
+4. Auditoría y Registro de IA:
+   - Bitácora completa en `AI-LOG.md` con detección y resolución de errores
+     (empaquetado Node de drizzle-kit con Expo Crypto, soft delete LWW, y cursores).
+
+--------------------------------------------------------------------------------
+INSTRUCCIONES DE EJECUCIÓN:
+--------------------------------------------------------------------------------
+1. Clonar el repositorio:
+   git clone https://github.com/juankAnez/desarrolloMovil.git
+   cd "desarrolloMovil/semana 6 y 7 -geocam/geocam-sync"
+
+2. Instalar dependencias:
+   npm install
+
+3. Base de Datos en Supabase:
+   Ejecutar `supabase/schema.sql` y `supabase/semana9.sql` en el SQL Editor de Supabase.
+
+4. Variables de Entorno:
+   Crear archivo `.env` en la raíz de `geocam-sync`:
+   EXPO_PUBLIC_SUPABASE_URL=https://rmrimviqmefcisfrkgjz.supabase.co
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_5_CP_id8WOwR98ecJi3bUg_XHhjQ0_4
+
+5. Generar migraciones de Drizzle:
+   npm run db:generate
+
+6. Iniciar la aplicación:
+   npx expo start -c
+================================================================================

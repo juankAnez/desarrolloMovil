@@ -31,7 +31,8 @@
           "cameraPermission": "Tutor IA usa la cámara para tomar una foto y preguntarle a la IA."
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-status-bar"
     ],
     "scheme": "tutoria"
   }

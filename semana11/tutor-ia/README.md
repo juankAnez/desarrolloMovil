@@ -4,7 +4,7 @@ Aplicación móvil con Asistente/Tutor de Inteligencia Artificial que responde e
 
 Desarrollado para la asignatura **Programación Móvil Avanzada · Universidad de La Guajira**.  
 **Estudiante:** Juan Carlos Áñez Ahumada  
-**Tecnologías:** Expo SDK 57 · React Native 0.86 · React 19 · Vercel AI SDK v7 · Google Gemini · Supabase Auth · Supabase Edge Functions (Deno).
+**Tecnologías:** Expo SDK 58 · React Native 0.88 · React 19 · Vercel AI SDK v7 · Google Gemini · Supabase Auth · Supabase Edge Functions (Deno).
 
 ---
 
@@ -54,6 +54,6 @@ Tu proyecto de Supabase es: **`hiadaadhgkjyjmtfexxh`**.
    npx expo start -c
    ```
 
-3. Abre con **Expo Go** (SDK 57) escaneando el código QR (o presiona `a` para Android).
+3. Abre con **Expo Go** (SDK 58) escaneando el código QR (o presiona `a` para Android).
 4. Crea una cuenta o inicia sesión con tu usuario de Supabase.
 5. ¡Empieza a consultar con texto, fotos de código o errores de pantalla!

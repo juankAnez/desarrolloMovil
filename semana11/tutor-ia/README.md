@@ -20,66 +20,40 @@ Reside exclusivamente como secreto protegido dentro de la Supabase Edge Function
 
 ---
 
-## 🚀 Paso a Paso para Ejecutarlo
+## 🚀 Paso a Paso para Desplegar y Probar
 
 ### 1. Despliegue de la Edge Function en Supabase
 
-Tu ID de proyecto de Supabase es: `rmrimviqmefcisfrkgjz`.
+Tu proyecto de Supabase es: **`hiadaadhgkjyjmtfexxh`**.
 
-#### Opción A (Vía Supabase Dashboard en la Web — ¡La más rápida!):
-1. Ve al Dashboard de tu proyecto en Supabase: [https://supabase.com/dashboard/project/rmrimviqmefcisfrkgjz](https://supabase.com/dashboard/project/rmrimviqmefcisfrkgjz)
-2. En el menú lateral izquierdo entra a **Edge Functions**.
-3. Haz clic en **Create Function** (o *Deploy via Editor*).
-4. Nombre de la función: `tutor`.
-5. Pega el código completo que se encuentra en:  
+#### Despliegue directo desde el Dashboard Web (2 minutos):
+1. Entra a las Edge Functions de tu proyecto:  
+   👉 [https://supabase.com/dashboard/project/hiadaadhgkjyjmtfexxh/functions](https://supabase.com/dashboard/project/hiadaadhgkjyjmtfexxh/functions)
+2. Haz clic en **Create Function** (o *Deploy via Editor*).
+3. Nombre de la función: **`tutor`**.
+4. Pega el código completo de:  
    [`supabase/functions/tutor/index.ts`](supabase/functions/tutor/index.ts)
-6. En la pestaña lateral de la función o en **Edge Functions > Secrets**, añade el secreto:
+5. En la sección **Secrets** (o en la barra lateral de la función en *Function Secrets*), agrega:
    * **Nombre:** `GEMINI_API_KEY`
-   * **Valor:** Tu clave obtenida en [Google AI Studio](https://aistudio.google.com/).
-7. Haz clic en **Deploy**.
-
-#### Opción B (Vía Supabase CLI en Terminal):
-```bash
-cd "semana11/tutor-ia"
-
-# Iniciar sesión y vincular tu proyecto
-npx supabase login
-npx supabase link --project-ref rmrimviqmefcisfrkgjz
-
-# Configurar la API key de Gemini como secreto
-npx supabase secrets set GEMINI_API_KEY=AIzaSy...
-
-# Desplegar la función
-npx supabase functions deploy tutor
-```
+   * **Valor:** Tu API Key de Gemini.
+6. Haz clic en **Deploy**.
 
 ---
 
 ### 2. Iniciar la Aplicación Móvil
 
-1. El archivo `.env` ya se encuentra configurado en la raíz de `tutor-ia`:
+1. El archivo `.env` ya está listo y configurado en la raíz de `tutor-ia`:
    ```env
-   EXPO_PUBLIC_SUPABASE_URL=https://rmrimviqmefcisfrkgjz.supabase.co
-   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_5_CP_id8WOwR98ecJi3bUg_XHhjQ0_4
+   EXPO_PUBLIC_SUPABASE_URL=https://hiadaadhgkjyjmtfexxh.supabase.co
+   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_jKAVqy86_bic_WfeLBqjXg_ACUKArt9
    ```
 
-2. Iniciar el servidor de desarrollo de Expo:
+2. Arranca el servidor de desarrollo:
    ```bash
    cd "semana11/tutor-ia"
    npx expo start -c
    ```
 
-3. Abre la app en tu teléfono escaneando el código QR con **Expo Go** (SDK 57) o presiona `a` para emulador Android / `w` para Web.
-4. Regístrate o inicia sesión con tu cuenta de Supabase.
-5. ¡Listo! Puedes conversar con el tutor, enviar capturas de código con la cámara 📷 o la galería 🖼️, o detener la respuesta en cualquier momento con el botón ■.
-
----
-
-## 🎨 Mejoras de Diseño y Robustez Implementadas
-
-- **Diseño Moderno & Dinámico:** Paleta institucional de Uniguajira (verde esmeralda `#059669` y pizarra oscura `#0f172a`), con tipografía legible, sombras suaves y avatares diferenciados.
-- **Soporte para Código Markdown:** Los bloques de código devueltos por Gemini se formatean en contenedores oscuros monospaced con etiqueta de lenguaje (JS, TSX, SQL, etc.) y opción de copiar texto.
-- **Chips de Sugerencias:** Estado vacío interactivo con accesos directos para consultas frecuentes.
-- **Previsualización de Foto:** Vista previa flotante con botón para quitar o reemplazar la imagen antes de enviar.
-- **Polyfill Anti-Crasheos:** Inyección síncrona de `structuredClone` en Hermes para evitar race conditions al cargar el AI SDK.
-- **Protección de URL:** Limpieza automática de barras diagonales redundantes en las llamadas al gateway de funciones.
+3. Abre con **Expo Go** (SDK 57) escaneando el código QR (o presiona `a` para Android).
+4. Crea una cuenta o inicia sesión con tu usuario de Supabase.
+5. ¡Empieza a consultar con texto, fotos de código o errores de pantalla!

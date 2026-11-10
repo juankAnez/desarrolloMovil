@@ -34,16 +34,50 @@ export default function Login() {
 
     setEnviando(true);
     try {
-      const { error } =
-        modo === 'entrar'
-          ? await supabase.auth.signInWithPassword({ email: correoLimpio, password: clave })
-          : await supabase.auth.signUp({ email: correoLimpio, password: clave });
+      if (modo === 'registro') {
+        const { data, error } = await supabase.auth.signUp({
+          email: correoLimpio,
+          password: clave,
+        });
 
-      if (error) {
-        Alert.alert('No se pudo autenticar', error.message);
+        if (error) {
+          if (error.message.includes('rate limit') || error.status === 429) {
+            Alert.alert(
+              'Límite de correos de Supabase',
+              'Supabase tiene un límite de 3 correos por hora cuando "Confirm email" está activado.\n\nPara solucionarlo de inmediato: Ve a tu panel de Supabase en Authentication > Providers > Email y desactiva "Confirm email" para que no requiera enviar correos y el registro entre directo.'
+            );
+          } else {
+            Alert.alert('Error al registrarse', error.message);
+          }
+          return;
+        }
+
+        if (data.user && !data.session) {
+          Alert.alert(
+            'Cuenta creada (Requiere confirmación)',
+            'Tu cuenta se creó, pero tu proyecto de Supabase tiene "Confirm email" activado. Revisa tu correo para activarla, o para entrar de inmediato, desactiva "Confirm email" en tu Dashboard de Supabase (Authentication > Providers > Email).'
+          );
+        }
+        // Si data.session existe, onAuthStateChange redirige de inmediato al chat
+      } else {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: correoLimpio,
+          password: clave,
+        });
+
+        if (error) {
+          if (error.message.toLowerCase().includes('invalid login credentials')) {
+            Alert.alert(
+              'Credenciales no válidas',
+              'Correo o contraseña incorrectos.\n\nSi acabas de registrarte, asegúrate de haber desactivado "Confirm email" en Supabase o revisa si tu cuenta requiere confirmación por correo.'
+            );
+          } else {
+            Alert.alert('No se pudo iniciar sesión', error.message);
+          }
+          return;
+        }
+        // Éxito: onAuthStateChange actualiza el estado y Stack.Protected muestra el chat
       }
-      // Al tener éxito, onAuthStateChange en AuthProvider actualiza la sesión
-      // y Stack.Protected redirige automáticamente al chat.
     } catch (e) {
       Alert.alert('Error inesperado', (e as Error).message);
     } finally {

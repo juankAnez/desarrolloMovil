@@ -16,27 +16,40 @@ const CHUNK = 1000;
 
 const SecureStoreAdapter = {
   async getItem(key: string) {
-    const count = await SecureStore.getItemAsync(`${key}_n`);
-    if (!count) return null;
-    let value = '';
-    for (let i = 0; i < Number(count); i++) {
-      value += (await SecureStore.getItemAsync(`${key}_${i}`)) ?? '';
+    try {
+      const count = await SecureStore.getItemAsync(`${key}_n`);
+      if (!count) return null;
+      let value = '';
+      for (let i = 0; i < Number(count); i++) {
+        value += (await SecureStore.getItemAsync(`${key}_${i}`)) ?? '';
+      }
+      return value || null;
+    } catch {
+      return null;
     }
-    return value;
   },
   async setItem(key: string, value: string) {
-    const n = Math.ceil(value.length / CHUNK);
-    for (let i = 0; i < n; i++) {
-      await SecureStore.setItemAsync(`${key}_${i}`, value.slice(i * CHUNK, (i + 1) * CHUNK));
+    try {
+      await this.removeItem(key);
+      const n = Math.ceil(value.length / CHUNK);
+      for (let i = 0; i < n; i++) {
+        await SecureStore.setItemAsync(`${key}_${i}`, value.slice(i * CHUNK, (i + 1) * CHUNK));
+      }
+      await SecureStore.setItemAsync(`${key}_n`, String(n));
+    } catch (e) {
+      console.warn('[SecureStoreAdapter] Error guardando sesión:', e);
     }
-    await SecureStore.setItemAsync(`${key}_n`, String(n));
   },
   async removeItem(key: string) {
-    const count = await SecureStore.getItemAsync(`${key}_n`);
-    for (let i = 0; i < Number(count ?? 0); i++) {
-      await SecureStore.deleteItemAsync(`${key}_${i}`);
+    try {
+      const count = await SecureStore.getItemAsync(`${key}_n`);
+      for (let i = 0; i < Number(count ?? 0); i++) {
+        await SecureStore.deleteItemAsync(`${key}_${i}`);
+      }
+      await SecureStore.deleteItemAsync(`${key}_n`);
+    } catch {
+      // ignore
     }
-    await SecureStore.deleteItemAsync(`${key}_n`);
   },
 };
 

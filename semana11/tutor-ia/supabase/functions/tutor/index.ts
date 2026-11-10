@@ -13,12 +13,6 @@ import {
   type UIMessage,
 } from 'npm:ai@7';
 
-const apiKey = Deno.env.get('GEMINI_API_KEY');
-const google = createGoogleGenerativeAI({ apiKey: apiKey ?? '' });
-
-// Modelo por defecto: gemini-2.0-flash o gemini-1.5-flash (compatibles con Google AI Studio)
-const MODELO = Deno.env.get('GEMINI_MODEL') ?? 'gemini-2.0-flash';
-
 const INSTRUCCIONES = `Eres "Tutor IA", un tutor experto de Programación Móvil Avanzada (React Native con Expo, TypeScript y Supabase)
 de la Universidad de La Guajira. 
 - Respondes en español, con tono pedagógico, claro, amigable y conciso (máximo 10 líneas, salvo que te soliciten código completo).
@@ -40,17 +34,22 @@ export default {
 
     if (req.method !== 'POST') return new Response('Usa POST', { status: 405 });
 
-    if (!Deno.env.get('GEMINI_API_KEY')) {
+    const apiKey = Deno.env.get('GEMINI_API_KEY');
+    if (!apiKey) {
       return new Response(
         JSON.stringify({ error: 'Falta configurar el secreto GEMINI_API_KEY en Supabase Edge Functions.' }),
         { status: 500, headers: { 'Content-Type': 'application/json' } }
       );
     }
 
+    const google = createGoogleGenerativeAI({ apiKey });
+    // gemini-3.5-flash y gemini-3.5-flash-lite son los modelos activos en Google AI Studio
+    const modelo = Deno.env.get('GEMINI_MODEL') ?? 'gemini-3.5-flash';
+
     const { messages }: { messages: UIMessage[] } = await req.json();
 
     const result = streamText({
-      model: google(MODELO),
+      model: google(modelo),
       instructions: `${INSTRUCCIONES}\nEl estudiante que pregunta es ${ctx.userClaims?.email ?? 'anónimo'}.`,
       // La API no tiene memoria: se reenvía el historial. Solo los últimos 20 mensajes para optimizar tokens.
       messages: await convertToModelMessages(messages.slice(-20)),
@@ -66,13 +65,15 @@ export default {
         onError: (error) => {
           console.error('[tutor-error]', error);
           const real = RetryError.isInstance(error) ? error.lastError : error;
-          if (APICallError.isInstance(real) && real.statusCode === 429) {
-            return 'Se agotó la cuota gratuita de Gemini. Espera un minuto e intenta de nuevo.';
+          if (APICallError.isInstance(real)) {
+            if (real.statusCode === 429) {
+              return 'Se agotó la cuota gratuita de Gemini. Espera un minuto e intenta de nuevo.';
+            }
+            if (real.statusCode === 404) {
+              return `El modelo de Gemini (${modelo}) no está disponible. Usa gemini-3.5-flash.`;
+            }
           }
-          if (APICallError.isInstance(real) && real.statusCode === 404) {
-            return `El modelo de Gemini configurado (${MODELO}) no está disponible en tu API key.`;
-          }
-          return 'El tutor no pudo responder en este momento. Por favor intenta de nuevo.';
+          return (real as Error)?.message || 'El tutor no pudo responder en este momento. Por favor intenta de nuevo.';
         },
       }),
       headers: {

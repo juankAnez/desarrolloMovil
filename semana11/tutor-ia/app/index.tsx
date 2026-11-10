@@ -1,12 +1,13 @@
 import { useChat } from '@ai-sdk/react';
 import type { FileUIPart } from 'ai';
 import { Stack } from 'expo-router';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
   FlatList,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -36,7 +37,27 @@ export default function Chat() {
   const { messages, sendMessage, status, error, stop, clearError } = useChat({ transport });
   const [texto, setTexto] = useState('');
   const [foto, setFoto] = useState<FileUIPart | null>(null);
+  const [tecladoVisible, setTecladoVisible] = useState(false);
   const lista = useRef<FlatList>(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
+      () => {
+        setTecladoVisible(true);
+        setTimeout(() => lista.current?.scrollToEnd({ animated: true }), 100);
+      }
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      () => setTecladoVisible(false)
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   const ocupado = status === 'submitted' || status === 'streaming';
 
@@ -80,7 +101,7 @@ export default function Chat() {
   }
 
   return (
-    <SafeAreaView style={s.pantalla} edges={['bottom']}>
+    <SafeAreaView style={s.pantalla} edges={tecladoVisible ? [] : ['bottom']}>
       <Stack.Screen
         options={{
           headerShown: true,
@@ -110,7 +131,7 @@ export default function Chat() {
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 95 : 0}
       >
         <FlatList
@@ -119,6 +140,8 @@ export default function Chat() {
           keyExtractor={(m) => m.id}
           renderItem={({ item }) => <Burbuja mensaje={item} />}
           contentContainerStyle={s.listaContenido}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
           onContentSizeChange={() => lista.current?.scrollToEnd({ animated: true })}
           ListEmptyComponent={
             <View style={s.vacioContainer}>

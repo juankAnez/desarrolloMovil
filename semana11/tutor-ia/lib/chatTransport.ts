@@ -8,7 +8,7 @@ import { supabase, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from './supabase';
  * - headers: se calculan EN CADA mensaje, garantizando el envío del token de sesión vigente.
  * - fetch: expo/fetch con soporte nativo de streaming en Expo SDK 57.
  */
-export function crearTransporte(funcion = 'tutor') {
+export function crearTransporte(funcion = process.env.EXPO_PUBLIC_FUNCTION_NAME || 'tutor') {
   const baseUrl = (SUPABASE_URL || '').replace(/\/+$/, '');
   return new DefaultChatTransport({
     api: `${baseUrl}/functions/v1/${funcion}`,

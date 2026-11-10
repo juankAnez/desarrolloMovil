@@ -32,7 +32,7 @@ const SUGERENCIAS = [
 
 export default function Chat() {
   const { session } = useAuth();
-  const transport = useMemo(() => crearTransporte('tutor'), []);
+  const transport = useMemo(() => crearTransporte(), []);
   const { messages, sendMessage, status, error, stop, clearError } = useChat({ transport });
   const [texto, setTexto] = useState('');
   const [foto, setFoto] = useState<FileUIPart | null>(null);
@@ -160,7 +160,11 @@ export default function Chat() {
           <Pressable style={s.errorContainer} onPress={clearError}>
             <Ionicons name="alert-circle" size={20} color="#dc2626" />
             <View style={{ flex: 1 }}>
-              <Text style={s.errorTexto}>{error.message}</Text>
+              <Text style={s.errorTexto}>
+                {error.message?.includes('NOT_FOUND') || error.message?.includes('not found')
+                  ? 'No se pudo conectar con la Edge Function del Tutor en Supabase. Intenta de nuevo.'
+                  : error.message}
+              </Text>
               <Text style={s.errorCerrar}>Toca para descartar</Text>
             </View>
             <Ionicons name="close" size={18} color="#dc2626" />
